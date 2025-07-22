@@ -1,0 +1,44 @@
+[
+    {
+        "timestamp": "2025-07-21T19:01:55.962630",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 5.099999999999998,
+            "tiempo_transcurrido": 46.86463737487793,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "C",
+                "x": 1288,
+                "y": 395.046,
+                "score": 1014,
+                "fallos": 2,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-17T17:39:53.183583",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.8000000000000003,
+            "tiempo_transcurrido": 11.042239904403687,
+            "fallos_limit": 5,
+            "J1": {
+                "letra_actual": "X",
+                "x": 28,
+                "y": 100.23599999999993,
+                "score": 31,
+                "fallos": 0,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            }
+        }
+    }
+]
