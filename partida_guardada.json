@@ -1,0 +1,107 @@
+[
+    {
+        "timestamp": "2025-07-22T19:15:34.060770",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 5.099999999999998,
+            "tiempo_transcurrido": 71.08758401870728,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "P",
+                "x": 1055,
+                "y": 365.9759999999999,
+                "score": 1812,
+                "fallos": 7,
+                "color": [
+                    255,
+                    255,
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-22T19:15:17.997891",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 5.099999999999998,
+            "tiempo_transcurrido": 66.68373084068298,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "P",
+                "x": 51,
+                "y": 172.8899999999999,
+                "score": 1802,
+                "fallos": 6,
+                "color": [
+                    255,
+                    255,
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-22T19:13:20.106889",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.7000000000000002,
+            "tiempo_transcurrido": 8.830562829971313,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "N",
+                "x": 1218,
+                "y": 138.82200000000006,
+                "score": 21,
+                "fallos": 1,
+                "color": [
+                    255,
+                    0,
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-22T19:08:54.286239",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.5,
+            "tiempo_transcurrido": 1.3005759716033936,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "I",
+                "x": 324,
+                "y": 116.55,
+                "score": 0,
+                "fallos": 0,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-22T18:37:29.711561",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 4.699999999999999,
+            "tiempo_transcurrido": 43.66329264640808,
+            "fallos_limit": 5,
+            "J1": {
+                "letra_actual": "A",
+                "x": 333,
+                "y": 355.5,
+                "score": 361,
+                "fallos": 4,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            }
+        }
+    }
+]
