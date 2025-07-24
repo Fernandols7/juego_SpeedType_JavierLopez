@@ -1271,22 +1271,30 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         
         if racha_actual > 1:
             combo_text = f"COMBO x{racha_actual}"
-            if racha_actual < 10: combo_color = BLANCO
-            elif racha_actual < 20: combo_color = AMARILLO
-            else: combo_color = ROJO
-            
+            if racha_actual < 10:
+                combo_color = BLANCO
+            elif racha_actual < 20:
+                combo_color = AMARILLO
+            else:
+                combo_color = ROJO
+
             fuente_combo = pygame.freetype.SysFont("arial", 40)
             texto_surf, texto_rect = fuente_combo.render(combo_text, combo_color)
-            
-            offset_x = 0
-            offset_y = 0
-            if racha_actual >= 15:
-                offset_x = random.randint(-2, 2)
-                offset_y = random.randint(-2, 2)
 
-            pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
-            pos_y = 20 + offset_y
+            offset_x = random.randint(-2, 2) if racha_actual >= 15 else 0
+            offset_y = random.randint(-2, 2) if racha_actual >= 15 else 0
+
+            if num_jugadores == 2:
+                # Mostrar en el centro superior, pero más abajo para no tapar la UI
+                pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
+                pos_y = 90 + offset_y  # antes era 20
+            else:
+                # En modo 1P sí puede ir arriba
+                pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
+                pos_y = 20 + offset_y
+
             pantalla.blit(texto_surf, (pos_x, pos_y))
+
 
         btn_pausa.draw(pantalla)
         pygame.display.flip()
@@ -1294,11 +1302,78 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     total_aciertos = sum(j["score"] for j in jugadores.values())
     total_fallos = sum(j["fallos"] for j in jugadores.values())
 
+    
     if num_jugadores == 1:
         game_over(jugadores['J1']['score'], jugadores['J1']['score'], jugadores['J1']['fallos'], fuente_ui)
     else:
-        ganador = "J1" if jugadores["J1"]["score"] >= jugadores["J2"]["score"] else "J2"
-        game_over(jugadores[ganador]["score"], total_aciertos, total_fallos, fuente_ui)
+        fuente_resultado_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60)
+        fuente_resultado_texto = pygame.freetype.SysFont("arial", 40)
+        fuente_botones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
+
+        score_j1 = jugadores['J1']['score']
+        score_j2 = jugadores['J2']['score']
+
+        if score_j1 > score_j2:
+            ganador = "JUGADOR 1"
+            color_ganador = jugadores['J1']['color']
+        elif score_j2 > score_j1:
+            ganador = "JUGADOR 2"
+            color_ganador = jugadores['J2']['color']
+        else:
+            ganador = "EMPATE"
+            color_ganador = BLANCO
+
+        btn_reiniciar = Button(ANCHO // 2 - 160, ALTO - 160, 150, 60, "REINICIAR", fuente_botones, GRIS_OSCURO, GRIS_CLARO)
+        btn_reiniciar.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
+        btn_menu = Button(ANCHO // 2 + 10, ALTO - 160, 150, 60, "MENÚ", fuente_botones, GRIS_OSCURO, GRIS_CLARO)
+        btn_menu.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
+
+        while True:
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if btn_reiniciar.handle_event(evento):
+                    return "reiniciar"
+                if btn_menu.handle_event(evento):
+                    return "menu_principal"
+                if evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
+                    return "menu_principal"
+
+            pantalla.blit(fondo_img, (0, 0))
+            dibujar_estrellas()
+
+            rect_titulo = pygame.Rect(0, 0, ANCHO, 80)
+            rect_titulo.center = (ANCHO // 2, 100)
+            render_text_gradient(fuente_resultado_titulo, "RESULTADOS FINALES", rect_titulo, pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
+
+            texto_j1 = f"JUGADOR 1: {score_j1} pts"
+            texto_j2 = f"JUGADOR 2: {score_j2} pts"
+            surf_j1, _ = fuente_resultado_texto.render(texto_j1, jugadores["J1"]["color"])
+            surf_j2, _ = fuente_resultado_texto.render(texto_j2, jugadores["J2"]["color"])
+            pantalla.blit(surf_j1, (ANCHO // 4 - surf_j1.get_width() // 2, 200))
+            pantalla.blit(surf_j2, (3 * ANCHO // 4 - surf_j2.get_width() // 2, 200))
+
+            if ganador != "EMPATE":
+                pygame.draw.rect(
+                    pantalla, color_ganador,
+                    pygame.Rect(
+                        (ANCHO // 4 if ganador == "JUGADOR 1" else 3 * ANCHO // 4) - 160,
+                        190, 320, 60
+                    ), 4, border_radius=10
+                )
+
+            fuente_ganador = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
+            rect_ganador = pygame.Rect(0, 0, ANCHO, 80)
+            rect_ganador.center = (ANCHO // 2, 320)
+            render_text_gradient(fuente_ganador, f"GANADOR: {ganador}", rect_ganador, pantalla, [color_ganador, BLANCO], COLOR_CONTORNO, 3)
+
+            btn_reiniciar.draw(pantalla)
+            btn_menu.draw(pantalla)
+
+            pygame.display.flip()
+            clock.tick(60)
+
     
     return "menu_principal"
 
@@ -1471,6 +1546,9 @@ if __name__ == '__main__':
         
         # Este bloque maneja el retorno del juego al menú principal
         if 'resultado_juego' in locals() and resultado_juego == "menu_principal":
-            if music_loaded and pygame.mixer.music.get_busy() == 0: pygame.mixer.music.unpause() 
+            # ARREGLO: La música se vuelve a reproducir en lugar de intentar despausarla,
+            # ya que fue detenida con fadeout y no pausada.
+            if music_loaded and not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
             del resultado_juego # Limpiar la variable para el siguiente ciclo
             continue # Volver al inicio del bucle principal
