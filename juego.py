@@ -64,7 +64,7 @@ except:
     fondo_img.fill(NEGRO)
 
 try:
-    ruta_fondo_pausa = os.path.join(os.path.dirname(__file__), "fondo.jpg")
+    ruta_fondo_pausa = os.path.join(os.path.dirname(__file__), "Fondo2.png")
     fondo_pausa_img = pygame.image.load(ruta_fondo_pausa).convert()
     fondo_pausa_img = pygame.transform.scale(fondo_pausa_img, (ANCHO, ALTO))
 except Exception as e:
@@ -161,47 +161,48 @@ def cargar_config():
 # ========================
 # FUNCIONES DE GUARDAR/CARGAR PARTIDA
 # ========================
-def guardar_partida(estado_juego, game_mode):
-    """Guarda el estado actual del juego en un archivo JSON."""
-    saved_games = [] 
-    if os.path.exists("partida_guardada.json"):
-        try:
-            with open("partida_guardada.json", "r") as f:
-                content = f.read()
-                if content:
-                    loaded_data = json.loads(content)
-                    if isinstance(loaded_data, list):
-                        saved_games = loaded_data
-                    elif isinstance(loaded_data, dict):
-                        saved_games = [loaded_data]
-                    else:
-                        print(f"Advertencia: Contenido inesperado en partida_guardada.json. Tipo: {type(loaded_data)}. Creando nuevo archivo.")
-                        saved_games = []
-                else:
-                    saved_games = []
-        except (json.JSONDecodeError, FileNotFoundError):
-            print("Archivo de guardado corrupto o no encontrado, se creará uno nuevo.")
-            saved_games = []
-    
-    new_save = {
-        "timestamp": datetime.now().isoformat(),
-        "mode": game_mode,
-        "state": estado_juego
-    }
-    
-    saved_games.append(new_save)
-    
-    saved_games = [s for s in saved_games if isinstance(s, dict) and 'timestamp' in s]
+def guardar_partida(estado_juego, game_mode, timestamp_a_actualizar=None):
+    """
+    Guarda el estado actual del juego.
+    Si se proporciona un timestamp, actualiza esa partida.
+    Si no, crea una nueva.
+    """
+    saved_games = cargar_partida()  # Reutilizamos la función de carga para obtener la lista actual
 
-    saved_games.sort(key=lambda x: x['timestamp'], reverse=True)
+    if timestamp_a_actualizar:
+        # Modo actualización: Buscar la partida existente y actualizar su estado.
+        partida_actualizada = False
+        for game in saved_games:
+            if game.get("timestamp") == timestamp_a_actualizar:
+                game["state"] = estado_juego
+                partida_actualizada = True
+                print(f"Partida '{timestamp_a_actualizar}' actualizada.")
+                break
+        
+        # Si por alguna razón no se encontró la partida, la creamos como nueva para no perder el progreso.
+        if not partida_actualizada:
+            timestamp_a_actualizar = None # Forzamos la creación de una nueva partida
+
+    if not timestamp_a_actualizar:
+        # Modo creación: Añadir una nueva partida a la lista.
+        new_save = {
+            "timestamp": datetime.now().isoformat(),
+            "mode": game_mode,
+            "state": estado_juego
+        }
+        saved_games.append(new_save)
+        print("Nueva partida guardada.")
+
+    # Ordenar y mantener solo las 5 más recientes
+    saved_games.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
     saved_games = saved_games[:5]
 
     try:
         with open("partida_guardada.json", "w") as f:
             json.dump(saved_games, f, indent=4)
-        print("Partida guardada exitosamente.")
     except Exception as e:
         print(f"Error al guardar la partida: {e}")
+
 
 def cargar_partida():
     """Carga el estado del juego desde un archivo JSON."""
@@ -257,10 +258,18 @@ def guardar_highscores(scores):
         json.dump(scores, f, indent=4)
 
 def check_if_highscore(score):
-    """Verifica si una puntuación es suficientemente alta para estar en el top 5."""
-    highscores = cargar_highscores()
-    if len(highscores) < 5 or score > highscores[-1]['score']:
+    """Verifica si una puntuación es suficientemente alta para estar en el Top 5."""
+    highscores = cargar_highscores() # Carga las puntuaciones ordenadas de mayor a menor
+
+    # Condición 1: Si hay menos de 5 puntuaciones guardadas, el nuevo récord es automático.
+    if len(highscores) < 5:
         return True
+    
+    # Condición 2: Si ya hay 5 o más, la nueva puntuación debe ser mayor que la del 5to lugar.
+    # El índice 4 corresponde al quinto lugar (0=1ro, 1=2do, ..., 4=5to).
+    elif score > highscores[4]['score']:
+        return True
+        
     return False
 # --- FIN: CÓDIGO AGREGADO ---
 
@@ -533,18 +542,15 @@ def pantalla_menu_principal():
     fuente_opciones_estilo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
 
     try:
-        logo_img = pygame.image.load(os.path.join(os.path.dirname(__file__), "logo.png")).convert_alpha()
+        logo_img = pygame.image.load(os.path.join(os.path.dirname(__file__), "remove.png")).convert_alpha()
     except Exception as e:
         print(f"Error al cargar logo.png: {e}")
         logo_img = None
 
-    # --- INICIO: CÓDIGO MODIFICADO ---
     button_width = 280
     button_height = 60
-    # Posición Y inicial de los botones, ajustada para estar debajo del logo
     button_y_start = ALTO // 2 - 50 
     button_spacing = 80
-    # --- FIN: CÓDIGO MODIFICADO ---
 
     btn_modos_juego = Button(ANCHO // 2 - button_width//2, button_y_start, button_width, button_height, "MODOS DE JUEGO", fuente_opciones_estilo, GRIS_OSCURO, GRIS_CLARO)
     btn_modos_juego.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
@@ -585,7 +591,6 @@ def pantalla_menu_principal():
         pantalla.blit(fondo_img, (0, 0))
         dibujar_estrellas(0.5)
 
-        # --- INICIO: CÓDIGO MODIFICADO ---
         # Dibujar el logo primero, en la parte superior de la pantalla
         if logo_img:
             logo_width = 500
@@ -606,7 +611,6 @@ def pantalla_menu_principal():
         btn_cargar.draw(pantalla)
         btn_config.draw(pantalla)
         btn_salir.draw(pantalla)
-        # --- FIN: CÓDIGO MODIFICADO ---
 
         pygame.display.flip()
         clock.tick(60)
@@ -836,9 +840,9 @@ def pantalla_de_pausa():
             if btn_salir_sin_guardar.handle_event(evento): return "salir_sin_guardar"
 
 # ========================
-# GAME OVER
+# GAME OVER Y PANTALLA DE RESULTADOS
 # ========================
-def game_over(score, aciertos, fallos, fuente_ui_juego_normal):
+def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, scores_j2=None):
     fuente_ui_go_text = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 40)
     fuente_ui_go_stats = pygame.freetype.SysFont("arial", 30)
     fuente_ui_go_btns = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
@@ -856,50 +860,121 @@ def game_over(score, aciertos, fallos, fuente_ui_juego_normal):
                 sys.exit()
         pygame.time.delay(100)
 
-    if check_if_highscore(score):
-        pantalla_ingresar_nombre(score)
-        pantalla_highscores()
-        return True
-
-    btn_reiniciar = Button(ANCHO // 2 - 150, ALTO // 2 + 80, 140, 60, "REINICIAR", fuente_ui_go_btns, GRIS_OSCURO, GRIS_CLARO)
-    btn_reiniciar.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
-
-    btn_salir_go = Button(ANCHO // 2 + 10, ALTO // 2 + 80, 140, 60, "SALIR", fuente_ui_go_btns, GRIS_OSCURO, GRIS_CLARO)
-    btn_salir_go.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
-
-    while True:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if btn_reiniciar.handle_event(evento):
-                return True
-            if btn_salir_go.handle_event(evento):
-                pygame.quit()
-                sys.exit()
-
-        pantalla.blit(fondo_img, (0, 0))
-        dibujar_estrellas()
-
-        total = aciertos + fallos
-        prec = (aciertos / total) * 100 if total else 0
-
-        t1_rect = pygame.Rect(0, 0, ANCHO, 50)
-        t1_rect.center = (ANCHO // 2, 200)
-        render_text_gradient(fuente_ui_go_text, "¡GAME OVER!", t1_rect, pantalla, [ROJO, (255, 100, 0)], COLOR_CONTORNO, 3)
-
-        t2_surf, t2_rect = fuente_ui_go_stats.render(f"Puntaje: {score}", BLANCO)
-        t3_surf, t3_rect = fuente_ui_go_stats.render(f"Aciertos: {aciertos} Fallos: {fallos} Precisión: {prec:.2f}%", BLANCO)
-
-        pantalla.blit(t2_surf, (ANCHO//2 - t2_surf.get_width()//2, 250)) 
-        pantalla.blit(t3_surf, (ANCHO//2 - t3_surf.get_width()//2, 300)) 
+    # Lógica para game over de 1 jugador (Arcane)
+    if num_jugadores == 1:
+        if check_if_highscore(score):
+            pantalla_ingresar_nombre(score)
+            pantalla_highscores()
+            return "menu_principal"
         
-        btn_reiniciar.draw(pantalla)
-        btn_salir_go.draw(pantalla)
+        btn_reiniciar = Button(ANCHO // 2 - 150, ALTO // 2 + 80, 140, 60, "REINICIAR", fuente_ui_go_btns, GRIS_OSCURO, GRIS_CLARO)
+        btn_reiniciar.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
+        btn_salir_go = Button(ANCHO // 2 + 10, ALTO // 2 + 80, 140, 60, "SALIR", fuente_ui_go_btns, GRIS_OSCURO, GRIS_CLARO)
+        btn_salir_go.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
 
-        pygame.display.flip()
-        clock.tick(60)
+        while True:
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if btn_reiniciar.handle_event(evento):
+                    return "reiniciar"
+                if btn_salir_go.handle_event(evento):
+                    return "menu_principal"
 
+            pantalla.blit(fondo_img, (0, 0))
+            dibujar_estrellas()
+
+            total = aciertos + fallos
+            prec = (aciertos / total) * 100 if total else 0
+
+            t1_rect = pygame.Rect(0, 0, ANCHO, 50)
+            t1_rect.center = (ANCHO // 2, 200)
+            render_text_gradient(fuente_ui_go_text, "¡GAME OVER!", t1_rect, pantalla, [ROJO, (255, 100, 0)], COLOR_CONTORNO, 3)
+
+            t2_surf, t2_rect = fuente_ui_go_stats.render(f"Puntaje: {score}", BLANCO)
+            t3_surf, t3_rect = fuente_ui_go_stats.render(f"Aciertos: {aciertos} Fallos: {fallos} Precisión: {prec:.2f}%", BLANCO)
+
+            pantalla.blit(t2_surf, (ANCHO//2 - t2_surf.get_width()//2, 250)) 
+            pantalla.blit(t3_surf, (ANCHO//2 - t3_surf.get_width()//2, 300)) 
+            
+            btn_reiniciar.draw(pantalla)
+            btn_salir_go.draw(pantalla)
+
+            pygame.display.flip()
+            clock.tick(60)
+
+    # Lógica para pantalla de resultados de 2 jugadores (Versus)
+    else: # num_jugadores == 2
+        fuente_resultado_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60)
+        fuente_resultado_texto = pygame.freetype.SysFont("arial", 40)
+        fuente_botones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
+
+        score_j1 = scores_j1
+        score_j2 = scores_j2
+
+        if score_j1 > score_j2:
+            ganador = "JUGADOR 1"
+            color_ganador = VERDE
+        elif score_j2 > score_j1:
+            ganador = "JUGADOR 2"
+            color_ganador = AMARILLO
+        else:
+            ganador = "EMPATE"
+            color_ganador = BLANCO
+
+        btn_reiniciar = Button(ANCHO // 2 - 160, ALTO - 160, 150, 60, "REINICIAR", fuente_botones, GRIS_OSCURO, GRIS_CLARO)
+        btn_reiniciar.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
+        btn_menu = Button(ANCHO // 2 + 10, ALTO - 160, 150, 60, "MENÚ", fuente_botones, GRIS_OSCURO, GRIS_CLARO)
+        btn_menu.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
+
+        while True:
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if btn_reiniciar.handle_event(evento):
+                    return "reiniciar"
+                if btn_menu.handle_event(evento):
+                    return "menu_principal"
+                if evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
+                    return "menu_principal"
+
+            pantalla.blit(fondo_img, (0, 0))
+            dibujar_estrellas()
+
+            rect_titulo = pygame.Rect(0, 0, ANCHO, 80)
+            rect_titulo.center = (ANCHO // 2, 100)
+            render_text_gradient(fuente_resultado_titulo, "RESULTADOS FINALES", rect_titulo, pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
+
+            texto_j1 = f"JUGADOR 1: {score_j1} pts"
+            texto_j2 = f"JUGADOR 2: {score_j2} pts"
+            surf_j1, _ = fuente_resultado_texto.render(texto_j1, VERDE)
+            surf_j2, _ = fuente_resultado_texto.render(texto_j2, AMARILLO)
+            pantalla.blit(surf_j1, (ANCHO // 4 - surf_j1.get_width() // 2, 200))
+            pantalla.blit(surf_j2, (3 * ANCHO // 4 - surf_j2.get_width() // 2, 200))
+
+            if ganador != "EMPATE":
+                pygame.draw.rect(
+                    pantalla, color_ganador,
+                    pygame.Rect(
+                        (ANCHO // 4 if ganador == "JUGADOR 1" else 3 * ANCHO // 4) - 160,
+                        190, 320, 60
+                    ), 4, border_radius=10
+                )
+
+            fuente_ganador = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
+            rect_ganador = pygame.Rect(0, 0, ANCHO, 80)
+            rect_ganador.center = (ANCHO // 2, 320)
+            render_text_gradient(fuente_ganador, f"GANADOR: {ganador}", rect_ganador, pantalla, [color_ganador, BLANCO], COLOR_CONTORNO, 3)
+
+            btn_reiniciar.draw(pantalla)
+            btn_menu.draw(pantalla)
+
+            pygame.display.flip()
+            clock.tick(60)
+
+    
 # ========================
 # FUNCIONES DE UI DEL JUEGO
 # ========================
@@ -1070,14 +1145,17 @@ def pantalla_highscores():
 # ========================
 # JUEGO ESTÁNDAR
 # ========================
-def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_wrong_key_faults=False, time_limit_seconds=0, fallos_limit=10, initial_state=None):
-    # Se crea la fuente aquí para que siempre use la configuración actual al iniciar el juego
+def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_wrong_key_faults=False, time_limit_seconds=0, fallos_limit=10, initial_state=None, save_timestamp=None):
     fuente_letras = pygame.freetype.SysFont(nombre_fuente, tam)
     fuente_ui = pygame.freetype.SysFont("arial", 30)
     
     fuente_btn_pausa = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 20)
     btn_pausa = Button(ANCHO - 120, 10, 110, 40, "PAUSA", fuente_btn_pausa, GRIS_OSCURO, GRIS_CLARO)
     btn_pausa.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
+    
+    # Parámetros para la animación de oscilación de las letras
+    anim_amplitud = 15  # Píxeles que se moverá la letra a cada lado
+    anim_frecuencia = 5 # Velocidad de la oscilación
     
     racha_actual = 0
 
@@ -1095,12 +1173,11 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             tiempo_transcurrido_cargado = initial_state.get("tiempo_transcurrido", 0)
             fallos_limit = initial_state.get("fallos_limit", fallos_limit)
         else:
-            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color}} # Usar 'color' de la configuración
+            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi)}}
             velocidad = initial_speed
             tiempo_transcurrido_cargado = 0
     else:
         game_mode = "versus"
-        # Los colores de los jugadores en versus son fijos, no de la configuración general
         jugadores = {"J1": {"score": 0, "fallos": 0, "color": VERDE}, "J2": {"score": 0, "fallos": 0, "color": AMARILLO}}
         if initial_state:
             jugadores["J1"]["score"] = initial_state["J1"]["score"]
@@ -1151,7 +1228,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                     estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "J1": jugadores["J1"]}
                     if num_jugadores == 2:
                         estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
-                    guardar_partida(estado_actual, game_mode)
+                    guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
                     return "menu_principal"
                 elif accion_pausa == "salir_sin_guardar":
                     return "menu_principal"
@@ -1169,7 +1246,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                         estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "J1": jugadores["J1"]}
                         if num_jugadores == 2:
                             estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
-                        guardar_partida(estado_actual, game_mode)
+                        guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
                         return "menu_principal"
                     elif accion_pausa == "salir_sin_guardar":
                         return "menu_principal"
@@ -1189,6 +1266,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                             jugadores["J1"]["letra_actual"] = chr(random.randint(65, 90))
                             jugadores["J1"]["x"] = random.randint(0, ANCHO - 50)
                             jugadores["J1"]["y"] = 0
+                            jugadores["J1"]["anim_offset"] = random.uniform(0, 2 * math.pi)
                         elif count_wrong_key_faults:
                             if fallo_sound: fallo_sound.play()
                             racha_actual = 0
@@ -1218,8 +1296,14 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
 
         if num_jugadores == 1:
             jugadores["J1"]["y"] += velocidad * 60 * dt
-            # Usa el color de la configuración para la letra del jugador 1
-            fuente_letras.render_to(pantalla, (jugadores["J1"]["x"], jugadores["J1"]["y"]), jugadores["J1"]["letra_actual"], jugadores["J1"]["color"])
+            
+            # --- CÁLCULO DE LA ANIMACIÓN ---
+            tiempo_anim = time.time() 
+            desplazamiento_x = math.sin(tiempo_anim * anim_frecuencia + jugadores["J1"]["anim_offset"]) * anim_amplitud
+            pos_x_final = jugadores["J1"]["x"] + desplazamiento_x
+            
+            fuente_letras.render_to(pantalla, (pos_x_final, jugadores["J1"]["y"]), jugadores["J1"]["letra_actual"], jugadores["J1"]["color"])
+            
             if jugadores["J1"]["y"] > ALTO:
                 if fallo_sound: fallo_sound.play()
                 racha_actual = 0
@@ -1227,9 +1311,9 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 jugadores["J1"]["letra_actual"] = chr(random.randint(65, 90))
                 jugadores["J1"]["x"] = random.randint(0, ANCHO - 50)
                 jugadores["J1"]["y"] = 0
+                jugadores["J1"]["anim_offset"] = random.uniform(0, 2 * math.pi)
         else:
             active_letter_y += velocidad * 60 * dt
-            # Los colores en modo versus son fijos para J1 (verde) y J2 (amarillo)
             fuente_letras.render_to(pantalla, (active_letter_x, active_letter_y), active_letter, jugadores[current_turn_player]["color"])
             if active_letter_y > ALTO:
                 if fallo_sound: fallo_sound.play()
@@ -1248,9 +1332,6 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 velocidad += 0.1
             score_para_velocidad_anterior = total_score_actual
 
-        # Los colores de la UI (score y fallos) de los jugadores también deberían usar sus colores específicos si es multi-jugador
-        # O el color de la configuración si es un solo jugador (modo arcade)
-        # Ajuste para usar el color de configuración para J1 en modo arcade
         player1_ui_color = color if num_jugadores == 1 else jugadores['J1']['color']
         fuente_ui.render_to(pantalla, (10, 10), f"J1: {jugadores['J1']['score']} (Fallos: {jugadores['J1']['fallos']})", player1_ui_color)
         if num_jugadores == 2:
@@ -1271,30 +1352,26 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         
         if racha_actual > 1:
             combo_text = f"COMBO x{racha_actual}"
-            if racha_actual < 10:
-                combo_color = BLANCO
-            elif racha_actual < 20:
-                combo_color = AMARILLO
-            else:
-                combo_color = ROJO
-
+            if racha_actual < 10: combo_color = BLANCO
+            elif racha_actual < 20: combo_color = AMARILLO
+            else: combo_color = ROJO
+            
             fuente_combo = pygame.freetype.SysFont("arial", 40)
             texto_surf, texto_rect = fuente_combo.render(combo_text, combo_color)
-
-            offset_x = random.randint(-2, 2) if racha_actual >= 15 else 0
-            offset_y = random.randint(-2, 2) if racha_actual >= 15 else 0
+            
+            offset_x = 0
+            offset_y = 0
+            if racha_actual >= 15:
+                offset_x = random.randint(-2, 2)
+                offset_y = random.randint(-2, 2)
 
             if num_jugadores == 2:
-                # Mostrar en el centro superior, pero más abajo para no tapar la UI
                 pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
-                pos_y = 90 + offset_y  # antes era 20
+                pos_y = 90 + offset_y
             else:
-                # En modo 1P sí puede ir arriba
                 pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
                 pos_y = 20 + offset_y
-
             pantalla.blit(texto_surf, (pos_x, pos_y))
-
 
         btn_pausa.draw(pantalla)
         pygame.display.flip()
@@ -1302,80 +1379,12 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     total_aciertos = sum(j["score"] for j in jugadores.values())
     total_fallos = sum(j["fallos"] for j in jugadores.values())
 
-    
     if num_jugadores == 1:
-        game_over(jugadores['J1']['score'], jugadores['J1']['score'], jugadores['J1']['fallos'], fuente_ui)
+        resultado = pantalla_fin_juego(jugadores['J1']['score'], total_aciertos, total_fallos, num_jugadores=1)
     else:
-        fuente_resultado_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60)
-        fuente_resultado_texto = pygame.freetype.SysFont("arial", 40)
-        fuente_botones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
-
-        score_j1 = jugadores['J1']['score']
-        score_j2 = jugadores['J2']['score']
-
-        if score_j1 > score_j2:
-            ganador = "JUGADOR 1"
-            color_ganador = jugadores['J1']['color']
-        elif score_j2 > score_j1:
-            ganador = "JUGADOR 2"
-            color_ganador = jugadores['J2']['color']
-        else:
-            ganador = "EMPATE"
-            color_ganador = BLANCO
-
-        btn_reiniciar = Button(ANCHO // 2 - 160, ALTO - 160, 150, 60, "REINICIAR", fuente_botones, GRIS_OSCURO, GRIS_CLARO)
-        btn_reiniciar.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
-        btn_menu = Button(ANCHO // 2 + 10, ALTO - 160, 150, 60, "MENÚ", fuente_botones, GRIS_OSCURO, GRIS_CLARO)
-        btn_menu.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
-
-        while True:
-            for evento in pygame.event.get():
-                if evento.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if btn_reiniciar.handle_event(evento):
-                    return "reiniciar"
-                if btn_menu.handle_event(evento):
-                    return "menu_principal"
-                if evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
-                    return "menu_principal"
-
-            pantalla.blit(fondo_img, (0, 0))
-            dibujar_estrellas()
-
-            rect_titulo = pygame.Rect(0, 0, ANCHO, 80)
-            rect_titulo.center = (ANCHO // 2, 100)
-            render_text_gradient(fuente_resultado_titulo, "RESULTADOS FINALES", rect_titulo, pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
-
-            texto_j1 = f"JUGADOR 1: {score_j1} pts"
-            texto_j2 = f"JUGADOR 2: {score_j2} pts"
-            surf_j1, _ = fuente_resultado_texto.render(texto_j1, jugadores["J1"]["color"])
-            surf_j2, _ = fuente_resultado_texto.render(texto_j2, jugadores["J2"]["color"])
-            pantalla.blit(surf_j1, (ANCHO // 4 - surf_j1.get_width() // 2, 200))
-            pantalla.blit(surf_j2, (3 * ANCHO // 4 - surf_j2.get_width() // 2, 200))
-
-            if ganador != "EMPATE":
-                pygame.draw.rect(
-                    pantalla, color_ganador,
-                    pygame.Rect(
-                        (ANCHO // 4 if ganador == "JUGADOR 1" else 3 * ANCHO // 4) - 160,
-                        190, 320, 60
-                    ), 4, border_radius=10
-                )
-
-            fuente_ganador = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
-            rect_ganador = pygame.Rect(0, 0, ANCHO, 80)
-            rect_ganador.center = (ANCHO // 2, 320)
-            render_text_gradient(fuente_ganador, f"GANADOR: {ganador}", rect_ganador, pantalla, [color_ganador, BLANCO], COLOR_CONTORNO, 3)
-
-            btn_reiniciar.draw(pantalla)
-            btn_menu.draw(pantalla)
-
-            pygame.display.flip()
-            clock.tick(60)
-
+        resultado = pantalla_fin_juego(0, total_aciertos, total_fallos, num_jugadores=2, scores_j1=jugadores['J1']['score'], scores_j2=jugadores['J2']['score'])
     
-    return "menu_principal"
+    return resultado
 
 # ========================
 # MODO ARCANE (1 Jugador)
@@ -1384,7 +1393,6 @@ def jugar_arcane(nombre_fuente, tam, color):
     print("Iniciando Modo ARCANE (1 Jugador)...")
     fallos_limit = pantalla_configuracion_arcane()
     if fallos_limit == "volver_seleccion_modo": return "volver_seleccion_modo"
-    # Pasar los parámetros actualizados a la función jugar
     return jugar(nombre_fuente, tam, color, num_jugadores=1, initial_speed=1.5, count_wrong_key_faults=True, time_limit_seconds=0, fallos_limit=fallos_limit)
 
 # ========================
@@ -1395,7 +1403,6 @@ def jugar_versus(nombre_fuente, tam, color):
     time_limit_minutes = pantalla_configuracion_versus()
     if time_limit_minutes == "volver_seleccion_modo": return "volver_seleccion_modo"
     time_limit_seconds = time_limit_minutes * 60
-    # Pasar los parámetros actualizados a la función jugar
     return jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=2.0, count_wrong_key_faults=True, time_limit_seconds=time_limit_seconds, fallos_limit=10)
 
 # ========================
@@ -1472,14 +1479,12 @@ if __name__ == '__main__':
     pantalla_intro()
     
     config = cargar_config()
-    # Asegurarse de que config siempre tenga las claves esperadas con valores predeterminados si no se carga
     if not config:
         config = {"fuente": fuentes_disponibles[0], "tam": 60, "color": colores_disponibles[0]}
     
-    # Inicializar estas variables basándose en la configuración cargada (o predeterminada)
     nombre_fuente = config["fuente"]
     tam = config["tam"]
-    color = tuple(config["color"]) # Asegurarse de que el color sea una tupla
+    color = tuple(config["color"])
 
     while True:
         accion = pantalla_menu_principal()
@@ -1487,11 +1492,9 @@ if __name__ == '__main__':
         if accion == "seleccion_modo":
             modo_seleccionado = pantalla_seleccion_modo_juego()
             if modo_seleccionado == "arcane":
-                # Pasar las variables de configuración ACTUALIZADAS a jugar_arcane
                 resultado_juego = jugar_arcane(nombre_fuente, tam, color)
                 if resultado_juego == "volver_seleccion_modo": continue
             elif modo_seleccionado == "versus":
-                # Pasar las variables de configuración ACTUALIZADAS a jugar_versus
                 resultado_juego = jugar_versus(nombre_fuente, tam, color)
                 if resultado_juego == "volver_seleccion_modo": continue
             elif modo_seleccionado == "volver_menu": continue
@@ -1506,7 +1509,6 @@ if __name__ == '__main__':
                 selected_save_data = pantalla_seleccionar_partida(saved_games_list)
 
                 if selected_save_data == "refresh": 
-                    # Si se eliminó una partida, volver a cargar la lista y la pantalla de selección
                     continue
 
                 if selected_save_data and selected_save_data != "volver_menu":
@@ -1515,16 +1517,14 @@ if __name__ == '__main__':
                     loaded_fallos_limit = loaded_state.get("fallos_limit", 10)
                     loaded_time_limit_seconds = loaded_state.get("time_limit_seconds", 0)
                     
-                    # Al cargar una partida, también se deben usar la fuente y el color actuales del programa
-                    # O podrías considerar guardar y cargar la configuración de fuente/color CON la partida guardada
-                    # Por ahora, usamos la configuración actual del menú
                     if loaded_mode == "arcane":
                         resultado_juego = jugar(nombre_fuente=nombre_fuente, tam=tam, color=color, 
                                                 num_jugadores=1, 
                                                 initial_speed=loaded_state.get("velocidad", 1.5), 
                                                 count_wrong_key_faults=True, 
                                                 fallos_limit=loaded_fallos_limit, 
-                                                initial_state=loaded_state)
+                                                initial_state=loaded_state,
+                                                save_timestamp=selected_save_data["timestamp"])
                     elif loaded_mode == "versus":
                         resultado_juego = jugar(nombre_fuente=nombre_fuente, tam=tam, color=color, 
                                                 num_jugadores=2, 
@@ -1532,23 +1532,37 @@ if __name__ == '__main__':
                                                 count_wrong_key_faults=True, 
                                                 time_limit_seconds=loaded_time_limit_seconds, 
                                                 fallos_limit=loaded_fallos_limit, 
-                                                initial_state=loaded_state)
+                                                initial_state=loaded_state,
+                                                save_timestamp=selected_save_data["timestamp"])
                 else:
                     resultado_juego = None
-                break # Salir del bucle interno de cargar partida
+                break
 
         elif accion == "configuracion":
-            # Actualizar las variables nombre_fuente, tam y color con lo que devuelve la pantalla de configuración
             nombre_fuente, tam, color = pantalla_configuracion(config)
-            # Actualizar el diccionario de configuración para reflejar los cambios
             config = {"fuente": nombre_fuente, "tam": tam, "color": color}
-            # IMPORTANTE: No se necesita un 'continue' aquí, el bucle principal continuará y usará los nuevos valores.
         
-        # Este bloque maneja el retorno del juego al menú principal
         if 'resultado_juego' in locals() and resultado_juego == "menu_principal":
-            # ARREGLO: La música se vuelve a reproducir en lugar de intentar despausarla,
-            # ya que fue detenida con fadeout y no pausada.
             if music_loaded and not pygame.mixer.music.get_busy():
                 pygame.mixer.music.play(-1)
-            del resultado_juego # Limpiar la variable para el siguiente ciclo
-            continue # Volver al inicio del bucle principal
+            del resultado_juego 
+            continue
+        elif 'resultado_juego' in locals() and resultado_juego == "reiniciar":
+            if music_loaded and not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
+            # Volver a iniciar el modo de juego
+            if selected_save_data and selected_save_data != "volver_menu":
+                # Si se reinicia desde una partida cargada, se vuelve a cargar la partida (como si fuera una nueva)
+                if selected_save_data['mode'] == "arcane":
+                    resultado_juego = jugar_arcane(nombre_fuente, tam, color)
+                elif selected_save_data['mode'] == "versus":
+                    resultado_juego = jugar_versus(nombre_fuente, tam, color)
+            elif 'modo_seleccionado' in locals():
+                if modo_seleccionado == "arcane":
+                    resultado_juego = jugar_arcane(nombre_fuente, tam, color)
+                elif modo_seleccionado == "versus":
+                    resultado_juego = jugar_versus(nombre_fuente, tam, color)
+            else:
+                # Si no hay modo seleccionado, se vuelve al menú principal
+                del resultado_juego
+                continue

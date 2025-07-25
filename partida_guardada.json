@@ -1,5 +1,69 @@
 [
     {
+        "timestamp": "2025-07-24T17:59:05.472352",
+        "mode": "versus",
+        "state": {
+            "velocidad": 4.899999999999999,
+            "tiempo_transcurrido": 45.925671339035034,
+            "fallos_limit": 10,
+            "J1": {
+                "score": 184,
+                "fallos": 2,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            },
+            "J2": {
+                "score": 185,
+                "fallos": 3,
+                "color": [
+                    255,
+                    255,
+                    0
+                ]
+            },
+            "time_limit_seconds": 60,
+            "current_turn_player": "J1",
+            "active_letter": "B",
+            "active_letter_x": 628,
+            "active_letter_y": 232.25999999999993
+        }
+    },
+    {
+        "timestamp": "2025-07-24T17:58:13.525048",
+        "mode": "versus",
+        "state": {
+            "velocidad": 2.2,
+            "tiempo_transcurrido": 14.680360317230225,
+            "fallos_limit": 10,
+            "J1": {
+                "score": 14,
+                "fallos": 1,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            },
+            "J2": {
+                "score": 9,
+                "fallos": 2,
+                "color": [
+                    255,
+                    255,
+                    0
+                ]
+            },
+            "time_limit_seconds": 60,
+            "current_turn_player": "J2",
+            "active_letter": "B",
+            "active_letter_x": 1000,
+            "active_letter_y": 143.3819999999999
+        }
+    },
+    {
         "timestamp": "2025-07-23T19:21:46.885919",
         "mode": "versus",
         "state": {
@@ -48,80 +112,6 @@
                     255,
                     0,
                     0
-                ]
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-23T19:10:06.855413",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 2.800000000000001,
-            "tiempo_transcurrido": 15.756510734558105,
-            "fallos_limit": 10,
-            "J1": {
-                "letra_actual": "D",
-                "x": 290,
-                "y": 164.20799999999986,
-                "score": 171,
-                "fallos": 0,
-                "color": [
-                    255,
-                    0,
-                    0
-                ]
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-23T19:00:57.952931",
-        "mode": "versus",
-        "state": {
-            "velocidad": 3.5000000000000013,
-            "tiempo_transcurrido": 16.839734315872192,
-            "fallos_limit": 10,
-            "J1": {
-                "score": 100,
-                "fallos": 0,
-                "color": [
-                    0,
-                    255,
-                    0
-                ]
-            },
-            "J2": {
-                "score": 110,
-                "fallos": 0,
-                "color": [
-                    255,
-                    255,
-                    0
-                ]
-            },
-            "time_limit_seconds": 60,
-            "current_turn_player": "J1",
-            "active_letter": "P",
-            "active_letter_x": 151,
-            "active_letter_y": 170.20800000000006
-        }
-    },
-    {
-        "timestamp": "2025-07-23T18:58:33.651761",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 5.099999999999998,
-            "tiempo_transcurrido": 42.30618476867676,
-            "fallos_limit": 5,
-            "J1": {
-                "letra_actual": "I",
-                "x": 787,
-                "y": 206.54999999999984,
-                "score": 1296,
-                "fallos": 1,
-                "color": [
-                    0,
-                    0,
-                    255
                 ]
             }
         }
