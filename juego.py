@@ -1146,6 +1146,7 @@ def pantalla_highscores():
 # JUEGO ESTÁNDAR
 # ========================
 def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_wrong_key_faults=False, time_limit_seconds=0, fallos_limit=10, initial_state=None, save_timestamp=None):
+    # Se crea la fuente aquí para que siempre use la configuración actual al iniciar el juego
     fuente_letras = pygame.freetype.SysFont(nombre_fuente, tam)
     fuente_ui = pygame.freetype.SysFont("arial", 30)
     
@@ -1153,11 +1154,16 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     btn_pausa = Button(ANCHO - 120, 10, 110, 40, "PAUSA", fuente_btn_pausa, GRIS_OSCURO, GRIS_CLARO)
     btn_pausa.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
     
-    # Parámetros para la animación de oscilación de las letras
-    anim_amplitud = 15  # Píxeles que se moverá la letra a cada lado
-    anim_frecuencia = 5 # Velocidad de la oscilación
-    
     racha_actual = 0
+    nivel_actual = 1
+    nivel_mostrado = False
+    tiempo_mostrar_nivel = 0
+    duracion_mensaje_nivel = 4 # Duración en segundos del mensaje de nivel
+    pulsaciones_correctas = 0 # Contador para subir de nivel
+
+    anim_amplitud = 15 # Para la animación oscilante en modo Arcade
+    anim_frecuencia = 5 # Para la animación oscilante en modo Arcade
+    max_speed = 5.0 # Velocidad máxima para el incremento
 
     if music_loaded:
         if not pygame.mixer.music.get_busy():
@@ -1165,6 +1171,16 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         else:
             pygame.mixer.music.unpause()
 
+    game_mode = "arcane" # Valor por defecto
+    jugadores = {}
+    current_turn_player = "J1" # Por defecto para Versus
+    active_letter = chr(random.randint(65, 90)) # Por defecto para Versus
+    active_letter_x = 0
+    active_letter_y = 0
+
+    velocidad = initial_speed
+    tiempo_transcurrido_cargado = 0
+    
     if num_jugadores == 1:
         game_mode = "arcane"
         if initial_state:
@@ -1172,12 +1188,17 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             velocidad = initial_state.get("velocidad", initial_speed)
             tiempo_transcurrido_cargado = initial_state.get("tiempo_transcurrido", 0)
             fallos_limit = initial_state.get("fallos_limit", fallos_limit)
+            pulsaciones_correctas = initial_state.get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para niveles
+            # Recalcular nivel al cargar
+            if pulsaciones_correctas >= 80: nivel_actual = 3
+            elif pulsaciones_correctas >= 30: nivel_actual = 2
+            else: nivel_actual = 1
         else:
-            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi)}}
-            velocidad = initial_speed
-            tiempo_transcurrido_cargado = 0
-    else:
+            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi)}} # Usar 'color' de la configuración, añadir anim_offset
+            
+    else: # num_jugadores == 2
         game_mode = "versus"
+        # Los colores de los jugadores en versus son fijos, no de la configuración general
         jugadores = {"J1": {"score": 0, "fallos": 0, "color": VERDE}, "J2": {"score": 0, "fallos": 0, "color": AMARILLO}}
         if initial_state:
             jugadores["J1"]["score"] = initial_state["J1"]["score"]
@@ -1192,22 +1213,24 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             tiempo_transcurrido_cargado = initial_state.get("tiempo_transcurrido", 0)
             time_limit_seconds = initial_state.get("time_limit_seconds", time_limit_seconds)
             fallos_limit = initial_state.get("fallos_limit", fallos_limit)
+            pulsaciones_correctas = initial_state.get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para niveles
+            # Recalcular nivel al cargar
+            if pulsaciones_correctas >= 80: nivel_actual = 3
+            elif pulsaciones_correctas >= 30: nivel_actual = 2
+            else: nivel_actual = 1
         else:
             current_turn_player = "J1"
             active_letter = chr(random.randint(65, 90))
             active_letter_x = random.randint(0, ANCHO // 2 - 50)
             active_letter_y = 0
-            velocidad = initial_speed
-            tiempo_transcurrido_cargado = 0
-
+            
     tiempo_inicio_juego = time.time()
     tiempo_pausado_total = 0
-    score_para_velocidad_anterior = 0
-    max_speed = 5.0
     
+    # Mostrar conteo regresivo si se carga una partida
     if initial_state:
         mostrar_conteo_regresivo(3, fuente_ui, BLANCO)
-        tiempo_inicio_juego = time.time()
+        tiempo_inicio_juego = time.time() # Reiniciar el tiempo de inicio después del conteo
 
     run = True
     while run:
@@ -1219,13 +1242,14 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 pygame.quit()
                 sys.exit()
             
+            # Manejo del botón de pausa
             if btn_pausa.handle_event(evento):
                 tiempo_inicio_pausa = time.time()
                 accion_pausa = pantalla_de_pausa()
                 tiempo_pausado_total += time.time() - tiempo_inicio_pausa
 
                 if accion_pausa == "guardar_y_salir":
-                    estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "J1": jugadores["J1"]}
+                    estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "pulsaciones_correctas": pulsaciones_correctas, "J1": jugadores["J1"]}
                     if num_jugadores == 2:
                         estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
                     guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
@@ -1233,9 +1257,11 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 elif accion_pausa == "salir_sin_guardar":
                     return "menu_principal"
                 elif accion_pausa == "reanudar":
+                    # Ajustar el tiempo de inicio para que la pausa no afecte el tiempo transcurrido
                     tiempo_inicio_juego = time.time() 
                     tiempo_transcurrido_cargado = tiempo_transcurrido
 
+            # Manejo de la tecla ESC para pausa
             if evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_ESCAPE:
                     tiempo_inicio_pausa = time.time()
@@ -1243,7 +1269,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                     tiempo_pausado_total += time.time() - tiempo_inicio_pausa
 
                     if accion_pausa == "guardar_y_salir":
-                        estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "J1": jugadores["J1"]}
+                        estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "pulsaciones_correctas": pulsaciones_correctas, "J1": jugadores["J1"]}
                         if num_jugadores == 2:
                             estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
                         guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
@@ -1254,25 +1280,29 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                         tiempo_inicio_juego = time.time() 
                         tiempo_transcurrido_cargado = tiempo_transcurrido
 
-                elif evento.key >= pygame.K_a and evento.key <= pygame.K_z:
+                # Manejo de letras pulsadas
+                elif pygame.K_a <= evento.key <= pygame.K_z:
                     typed_letter = pygame.key.name(evento.key).upper() 
                     
                     if num_jugadores == 1:
-                        if typed_letter == jugadores["J1"]["letra_actual"]:
+                        j1 = jugadores["J1"]
+                        if typed_letter == j1["letra_actual"]:
+                            pulsaciones_correctas += 1 # Contar para el sistema de niveles
                             if acierto_sound: acierto_sound.play()
-                            jugadores["J1"]["score"] += (1 + racha_actual)
+                            j1["score"] += (1 + racha_actual)
                             racha_actual += 1
-                            crear_particulas(jugadores["J1"]["x"] + 25, jugadores["J1"]["y"] + 25, jugadores["J1"]["color"])
-                            jugadores["J1"]["letra_actual"] = chr(random.randint(65, 90))
-                            jugadores["J1"]["x"] = random.randint(0, ANCHO - 50)
-                            jugadores["J1"]["y"] = 0
-                            jugadores["J1"]["anim_offset"] = random.uniform(0, 2 * math.pi)
-                        elif count_wrong_key_faults:
+                            crear_particulas(j1["x"] + 25, j1["y"] + 25, j1["color"])
+                            j1["letra_actual"] = chr(random.randint(65, 90))
+                            j1["x"] = random.randint(0, ANCHO - 50)
+                            j1["y"] = 0
+                            j1["anim_offset"] = random.uniform(0, 2 * math.pi) # Resetear offset de animación
+                        elif count_wrong_key_faults: # Solo si está activada la cuenta de fallos por tecla incorrecta
                             if fallo_sound: fallo_sound.play()
                             racha_actual = 0
-                            jugadores["J1"]["fallos"] += 1
-                    else:
+                            j1["fallos"] += 1
+                    else: # num_jugadores == 2 (Versus)
                         if typed_letter == active_letter:
+                            pulsaciones_correctas += 1 # Contar para el sistema de niveles
                             if acierto_sound: acierto_sound.play()
                             jugadores[current_turn_player]["score"] += (1 + racha_actual)
                             racha_actual += 1
@@ -1282,6 +1312,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                             racha_actual = 0
                             jugadores[current_turn_player]["fallos"] += 1
                         
+                        # Generar nueva letra y cambiar de turno
                         active_letter = chr(random.randint(65, 90))
                         active_letter_y = 0
                         current_turn_player = "J2" if current_turn_player == "J1" else "J1"
@@ -1294,25 +1325,22 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         if num_jugadores == 2:
             pygame.draw.line(pantalla, BLANCO, (ANCHO // 2, 0), (ANCHO // 2, ALTO), 2)
 
+        # Movimiento de las letras
         if num_jugadores == 1:
-            jugadores["J1"]["y"] += velocidad * 60 * dt
-            
-            # --- CÁLCULO DE LA ANIMACIÓN ---
-            tiempo_anim = time.time() 
-            desplazamiento_x = math.sin(tiempo_anim * anim_frecuencia + jugadores["J1"]["anim_offset"]) * anim_amplitud
-            pos_x_final = jugadores["J1"]["x"] + desplazamiento_x
-            
-            fuente_letras.render_to(pantalla, (pos_x_final, jugadores["J1"]["y"]), jugadores["J1"]["letra_actual"], jugadores["J1"]["color"])
-            
-            if jugadores["J1"]["y"] > ALTO:
+            j1 = jugadores["J1"]
+            j1["y"] += velocidad * 60 * dt
+            # Aplicar animación oscilante (de la primera versión)
+            desplazamiento_x = math.sin(time.time() * anim_frecuencia + j1["anim_offset"]) * anim_amplitud
+            fuente_letras.render_to(pantalla, (j1["x"] + desplazamiento_x, j1["y"]), j1["letra_actual"], j1["color"])
+            if j1["y"] > ALTO:
                 if fallo_sound: fallo_sound.play()
                 racha_actual = 0
-                jugadores["J1"]["fallos"] += 1
-                jugadores["J1"]["letra_actual"] = chr(random.randint(65, 90))
-                jugadores["J1"]["x"] = random.randint(0, ANCHO - 50)
-                jugadores["J1"]["y"] = 0
-                jugadores["J1"]["anim_offset"] = random.uniform(0, 2 * math.pi)
-        else:
+                j1["fallos"] += 1
+                j1["letra_actual"] = chr(random.randint(65, 90))
+                j1["x"] = random.randint(0, ANCHO - 50)
+                j1["y"] = 0
+                j1["anim_offset"] = random.uniform(0, 2 * math.pi) # Resetear offset de animación
+        else: # num_jugadores == 2
             active_letter_y += velocidad * 60 * dt
             fuente_letras.render_to(pantalla, (active_letter_x, active_letter_y), active_letter, jugadores[current_turn_player]["color"])
             if active_letter_y > ALTO:
@@ -1326,65 +1354,87 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
 
         actualizar_y_dibujar_particulas()
 
-        total_score_actual = sum(j["score"] for j in jugadores.values())
-        if total_score_actual // 10 > score_para_velocidad_anterior // 10:
-            if velocidad < max_speed:
-                velocidad += 0.1
-            score_para_velocidad_anterior = total_score_actual
+        # Lógica de niveles y velocidad (de la primera versión, ajustada)
+        nuevo_nivel = nivel_actual
+        if pulsaciones_correctas >= 80:
+            nuevo_nivel = 3
+        elif pulsaciones_correctas >= 30:
+            nuevo_nivel = 2
+        else:
+            nuevo_nivel = 1
 
+        if nuevo_nivel != nivel_actual:
+            nivel_actual = nuevo_nivel
+            nivel_mostrado = True
+            tiempo_mostrar_nivel = time.time()
+
+        # Incremento progresivo de velocidad basado en el nivel
+        if nivel_actual == 2:
+            velocidad = min(velocidad + 0.002, max_speed)
+        elif nivel_actual == 3:
+            velocidad += 0.003 # Sin límite explícito en nivel 3, pero puedes añadirlo si lo deseas
+
+        # Mostrar mensaje de nivel
+        if nivel_mostrado:
+            tiempo_transcurrido_nivel = time.time() - tiempo_mostrar_nivel
+            if tiempo_transcurrido_nivel < duracion_mensaje_nivel:
+                # Animación de la fuente para el mensaje de nivel (de la primera versión)
+                fuente_nivel = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, int(60 + 10 * math.sin(tiempo_transcurrido_nivel * 6)))
+                rect_nivel = pygame.Rect(0, 0, ANCHO, 100)
+                rect_nivel.center = (ANCHO // 2, ALTO // 2)
+                render_text_gradient(fuente_nivel, f"NIVEL {nivel_actual}", rect_nivel, pantalla, [AMARILLO, BLANCO], COLOR_CONTORNO, 3)
+            else:
+                nivel_mostrado = False
+
+        # Interfaz de usuario (Score, Fallos)
         player1_ui_color = color if num_jugadores == 1 else jugadores['J1']['color']
         fuente_ui.render_to(pantalla, (10, 10), f"J1: {jugadores['J1']['score']} (Fallos: {jugadores['J1']['fallos']})", player1_ui_color)
         if num_jugadores == 2:
             fuente_ui.render_to(pantalla, (ANCHO // 2 + 10, 10), f"J2: {jugadores['J2']['score']} (Fallos: {jugadores['J2']['fallos']})", jugadores['J2']['color'])
-            if current_turn_player == "J1":
-                pygame.draw.circle(pantalla, jugadores["J1"]["color"], (ANCHO // 4, 50), 10)
-            else:
-                pygame.draw.circle(pantalla, jugadores["J2"]["color"], (3 * ANCHO // 4, 50), 10)
+            # Indicador de turno
+            pygame.draw.circle(pantalla, jugadores[current_turn_player]['color'], (ANCHO // 4 if current_turn_player == 'J1' else 3 * ANCHO // 4, 50), 10)
 
+        # Límite de tiempo
         if time_limit_seconds > 0:
             tiempo_restante = max(0, time_limit_seconds - int(tiempo_transcurrido))
             minutos, segundos = divmod(tiempo_restante, 60)
             fuente_ui.render_to(pantalla, (ANCHO // 2 - 70, 50), f"Tiempo: {minutos:02d}:{segundos:02d}", BLANCO)
             if tiempo_restante <= 0: run = False
 
+        # Límite de fallos
         if any(j["fallos"] >= fallos_limit for j in jugadores.values()):
             run = False
         
+        # Mostrar Racha (Combo)
         if racha_actual > 1:
             combo_text = f"COMBO x{racha_actual}"
-            if racha_actual < 10: combo_color = BLANCO
-            elif racha_actual < 20: combo_color = AMARILLO
-            else: combo_color = ROJO
+            combo_color = ROJO if racha_actual >= 20 else AMARILLO if racha_actual >= 10 else BLANCO
             
             fuente_combo = pygame.freetype.SysFont("arial", 40)
             texto_surf, texto_rect = fuente_combo.render(combo_text, combo_color)
             
             offset_x = 0
             offset_y = 0
-            if racha_actual >= 15:
+            if racha_actual >= 15: # Pequeña vibración en combos altos
                 offset_x = random.randint(-2, 2)
                 offset_y = random.randint(-2, 2)
 
-            if num_jugadores == 2:
-                pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
-                pos_y = 90 + offset_y
-            else:
-                pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
-                pos_y = 20 + offset_y
+            pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
+            pos_y = 90 + offset_y if num_jugadores == 2 else 20 + offset_y # Ajustar posición para Versus
             pantalla.blit(texto_surf, (pos_x, pos_y))
 
         btn_pausa.draw(pantalla)
         pygame.display.flip()
 
+    # Fin del juego
     total_aciertos = sum(j["score"] for j in jugadores.values())
     total_fallos = sum(j["fallos"] for j in jugadores.values())
 
     if num_jugadores == 1:
-        resultado = pantalla_fin_juego(jugadores['J1']['score'], total_aciertos, total_fallos, num_jugadores=1)
+        return pantalla_fin_juego(jugadores['J1']['score'], total_aciertos, total_fallos, num_jugadores=1)
     else:
-        resultado = pantalla_fin_juego(0, total_aciertos, total_fallos, num_jugadores=2, scores_j1=jugadores['J1']['score'], scores_j2=jugadores['J2']['score'])
-    
-    return resultado
+        # Pasa los scores individuales para el modo Versus
+        return pantalla_fin_juego(0, total_aciertos, total_fallos, num_jugadores=2, scores_j1=jugadores['J1']['score'], scores_j2=jugadores['J2']['score'])
 
 # ========================
 # MODO ARCANE (1 Jugador)
@@ -1479,6 +1529,7 @@ if __name__ == '__main__':
     pantalla_intro()
     
     config = cargar_config()
+    selected_save_data = None  # Evita NameError
     if not config:
         config = {"fuente": fuentes_disponibles[0], "tam": 60, "color": colores_disponibles[0]}
     
