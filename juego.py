@@ -44,10 +44,44 @@ colores_disponibles = [ # Lista de colores predefinidos para la personalización
 
 fuentes_disponibles = ["arial", "comicsansms", "couriernew", "verdana"] # Nombres de fuentes del sistema disponibles
 
-# Colores para el degradado del texto (Azul a Amarillo)
-COLOR_GRADIENTE_TOP = (0, 100, 255)  # Azul brillante
-COLOR_GRADIENTE_BOTTOM = (255, 255, 0) # Amarillo brillante
-COLOR_CONTORNO = (0, 0, 0) # Negro para el contorno
+# ==================================
+# ESTILOS NEÓN PARA TEXTOS DEL MENÚ
+# ==================================
+
+# Elige uno de los estilos disponibles
+ESTILO_NEON = "fucsia_cian"  # Cambia esta variable para probar otros estilos
+
+estilos_neon = {
+    "fucsia_cian": {
+        "top": (255, 0, 255),     # Fucsia
+        "bottom": (0, 255, 255)   # Cian
+    },
+    "verde_azul": {
+        "top": (57, 255, 20),     # Verde neón
+        "bottom": (0, 255, 255)   # Azul celeste
+    },
+    "rosa_naranja": {
+        "top": (255, 20, 147),    # Rosa fuerte
+        "bottom": (255, 140, 0)   # Naranja vibrante
+    },
+    "amarillo_verde": {
+        "top": (255, 255, 0),     # Amarillo
+        "bottom": (0, 255, 127)   # Verde neón suave
+    },
+    "blanco_azul": {
+        "top": (255, 255, 255),   # Blanco
+        "bottom": (0, 128, 255)   # Azul eléctrico
+    },
+    "color_fondo": {
+        "top": (0, 128, 255),  # Azul eléctrico
+        "bottom": (255, 0, 255)  # Cian
+    },
+}
+
+# Aplica el estilo seleccionado
+COLOR_GRADIENTE_TOP = estilos_neon[ESTILO_NEON]["top"]
+COLOR_GRADIENTE_BOTTOM = estilos_neon[ESTILO_NEON]["bottom"]
+COLOR_CONTORNO = (0, 0, 0)  # Contorno negro # Negro para el contorno
 
 # Fuente a usar para los textos con estilo de logo (puedes probar otras como "Impact", "Arial Black")
 FUENTE_LOGO_STYLE = "arial" # Si tienes un archivo .ttf, cárgalo con pygame.freetype.Font("ruta/a/tu/fuente.ttf", tamaño)
@@ -1284,39 +1318,48 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 elif pygame.K_a <= evento.key <= pygame.K_z:
                     typed_letter = pygame.key.name(evento.key).upper() 
                     
+                    # Dentro de elif evento.key == pygame.K_a <= evento.key <= pygame.K_z:
+
                     if num_jugadores == 1:
                         j1 = jugadores["J1"]
                         if typed_letter == j1["letra_actual"]:
-                            pulsaciones_correctas += 1 # Contar para el sistema de niveles
+                            pulsaciones_correctas += 1
                             if acierto_sound: acierto_sound.play()
                             j1["score"] += (1 + racha_actual)
                             racha_actual += 1
                             crear_particulas(j1["x"] + 25, j1["y"] + 25, j1["color"])
                             j1["letra_actual"] = chr(random.randint(65, 90))
-                            j1["x"] = random.randint(0, ANCHO - 50)
+                            margen_seguro = tam
+                            j1["x"] = random.randint(margen_seguro, ANCHO - margen_seguro)
                             j1["y"] = 0
-                            j1["anim_offset"] = random.uniform(0, 2 * math.pi) # Resetear offset de animación
-                        elif count_wrong_key_faults: # Solo si está activada la cuenta de fallos por tecla incorrecta
+                            j1["anim_offset"] = random.uniform(0, 2 * math.pi)
+                        elif count_wrong_key_faults:
                             if fallo_sound: fallo_sound.play()
                             racha_actual = 0
                             j1["fallos"] += 1
-                    else: # num_jugadores == 2 (Versus)
+                    else:
                         if typed_letter == active_letter:
-                            pulsaciones_correctas += 1 # Contar para el sistema de niveles
+                            pulsaciones_correctas += 1
                             if acierto_sound: acierto_sound.play()
                             jugadores[current_turn_player]["score"] += (1 + racha_actual)
                             racha_actual += 1
-                            crear_particulas(active_letter_x + (fuente_letras.get_rect(active_letter).width // 2), active_letter_y + (fuente_letras.get_rect(active_letter).height // 2), jugadores[current_turn_player]["color"])
+                            crear_particulas(active_letter_x + (fuente_letras.get_rect(active_letter).width // 2),
+                                            active_letter_y + (fuente_letras.get_rect(active_letter).height // 2),
+                                            jugadores[current_turn_player]["color"])
                         else:
                             if fallo_sound: fallo_sound.play()
                             racha_actual = 0
                             jugadores[current_turn_player]["fallos"] += 1
-                        
-                        # Generar nueva letra y cambiar de turno
+
                         active_letter = chr(random.randint(65, 90))
                         active_letter_y = 0
                         current_turn_player = "J2" if current_turn_player == "J1" else "J1"
-                        active_letter_x = random.randint(0, ANCHO // 2 - 50) if current_turn_player == "J1" else random.randint(ANCHO // 2, ANCHO - 50)
+                        margen_seguro = tam
+                        if current_turn_player == "J1":
+                            active_letter_x = random.randint(margen_seguro, ANCHO // 2 - margen_seguro)
+                        else:
+                            active_letter_x = random.randint(ANCHO // 2 + margen_seguro, ANCHO - margen_seguro)
+
 
         dt = clock.tick(60) / 1000.0
         pantalla.blit(fondo_img, (0, 0))
@@ -1337,12 +1380,14 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 racha_actual = 0
                 j1["fallos"] += 1
                 j1["letra_actual"] = chr(random.randint(65, 90))
-                j1["x"] = random.randint(0, ANCHO - 50)
+                margen_seguro = tam
+                j1["x"] = random.randint(margen_seguro, ANCHO - margen_seguro)
                 j1["y"] = 0
                 j1["anim_offset"] = random.uniform(0, 2 * math.pi) # Resetear offset de animación
-        else: # num_jugadores == 2
+        else:  # num_jugadores == 2
             active_letter_y += velocidad * 60 * dt
-            fuente_letras.render_to(pantalla, (active_letter_x, active_letter_y), active_letter, jugadores[current_turn_player]["color"])
+            desplazamiento_x = math.sin(time.time() * anim_frecuencia) * anim_amplitud
+            fuente_letras.render_to(pantalla, (active_letter_x + desplazamiento_x, active_letter_y), active_letter, jugadores[current_turn_player]["color"])
             if active_letter_y > ALTO:
                 if fallo_sound: fallo_sound.play()
                 racha_actual = 0
@@ -1350,7 +1395,11 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 active_letter = chr(random.randint(65, 90))
                 active_letter_y = 0
                 current_turn_player = "J2" if current_turn_player == "J1" else "J1"
-                active_letter_x = random.randint(0, ANCHO // 2 - 50) if current_turn_player == "J1" else random.randint(ANCHO // 2, ANCHO - 50)
+                margen_seguro = tam
+                if current_turn_player == "J1":
+                    active_letter_x = random.randint(margen_seguro, ANCHO // 2 - margen_seguro)
+                else:
+                    active_letter_x = random.randint(ANCHO // 2 + margen_seguro, ANCHO - margen_seguro)
 
         actualizar_y_dibujar_particulas()
 

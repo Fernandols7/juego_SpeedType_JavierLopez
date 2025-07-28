@@ -1,5 +1,84 @@
 [
     {
+        "timestamp": "2025-07-27T20:09:37.470187",
+        "mode": "versus",
+        "state": {
+            "velocidad": 2.0,
+            "tiempo_transcurrido": 7.083996295928955,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 9,
+            "J1": {
+                "score": 13,
+                "fallos": 0,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            },
+            "J2": {
+                "score": 14,
+                "fallos": 0,
+                "color": [
+                    255,
+                    255,
+                    0
+                ]
+            },
+            "time_limit_seconds": 60,
+            "current_turn_player": "J2",
+            "active_letter": "N",
+            "active_letter_x": 1270,
+            "active_letter_y": 67.8
+        }
+    },
+    {
+        "timestamp": "2025-07-27T20:07:46.716818",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.5,
+            "tiempo_transcurrido": 22.100466012954712,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 29,
+            "J1": {
+                "letra_actual": "E",
+                "x": 1266,
+                "y": 165.41999999999996,
+                "score": 205,
+                "fallos": 4,
+                "color": [
+                    255,
+                    165,
+                    0
+                ],
+                "anim_offset": 0.026251528459929955
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-27T19:37:03.226554",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 5.0,
+            "tiempo_transcurrido": 67.25728416442871,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 62,
+            "J1": {
+                "letra_actual": "P",
+                "x": 187,
+                "y": 104.99999999999996,
+                "score": 1353,
+                "fallos": 0,
+                "color": [
+                    255,
+                    165,
+                    0
+                ],
+                "anim_offset": 2.762684531394191
+            }
+        }
+    },
+    {
         "timestamp": "2025-07-25T21:07:38.733694",
         "mode": "versus",
         "state": {
@@ -52,72 +131,6 @@
                     0
                 ],
                 "anim_offset": 0.0014787423493260057
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-25T20:43:24.750728",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 9.560000000000173,
-            "tiempo_transcurrido": 87.4520308971405,
-            "fallos_limit": 10,
-            "J1": {
-                "letra_actual": "Q",
-                "x": 1032,
-                "y": 219.43170000000399,
-                "score": 3425,
-                "fallos": 3,
-                "color": [
-                    255,
-                    0,
-                    0
-                ],
-                "anim_offset": 2.367834233187702
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-25T20:28:01.077836",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 11.12100000000001,
-            "tiempo_transcurrido": 76.14291167259216,
-            "fallos_limit": 10,
-            "J1": {
-                "letra_actual": "Z",
-                "x": 142,
-                "y": 264.0110400000002,
-                "score": 1570,
-                "fallos": 9,
-                "color": [
-                    255,
-                    0,
-                    0
-                ],
-                "anim_offset": 1.2663733641772565
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-25T20:13:35.796266",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 2.8,
-            "tiempo_transcurrido": 48.266427993774414,
-            "fallos_limit": 10,
-            "J1": {
-                "letra_actual": "B",
-                "x": 588,
-                "y": 186.8159999999998,
-                "score": 1026,
-                "fallos": 1,
-                "color": [
-                    255,
-                    0,
-                    0
-                ],
-                "anim_offset": 0.5883383867242921
             }
         }
     }

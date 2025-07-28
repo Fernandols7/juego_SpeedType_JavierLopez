@@ -1,5 +1,9 @@
 [
     {
+        "nombre": "FFF",
+        "score": 6537
+    },
+    {
         "nombre": "FER",
         "score": 5681
     },
@@ -14,9 +18,5 @@
     {
         "nombre": "FXF",
         "score": 3869
-    },
-    {
-        "nombre": "FFF",
-        "score": 2777
     }
 ]
