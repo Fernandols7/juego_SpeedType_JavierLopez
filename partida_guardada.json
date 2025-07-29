@@ -1,5 +1,28 @@
 [
     {
+        "timestamp": "2025-07-28T19:13:41.383711",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.6420000000000001,
+            "tiempo_transcurrido": 7.196356773376465,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 32,
+            "J1": {
+                "letra_actual": "C",
+                "x": 840,
+                "y": 58.32168000000001,
+                "score": 416,
+                "fallos": 1,
+                "color": [
+                    255,
+                    255,
+                    0
+                ],
+                "anim_offset": 1.6648398522585588
+            }
+        }
+    },
+    {
         "timestamp": "2025-07-27T20:09:37.470187",
         "mode": "versus",
         "state": {
@@ -109,29 +132,6 @@
             "active_letter": "Y",
             "active_letter_x": 2,
             "active_letter_y": 366.21468000000095
-        }
-    },
-    {
-        "timestamp": "2025-07-25T21:03:24.052700",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 5.0,
-            "tiempo_transcurrido": 60.1628143787384,
-            "fallos_limit": 15,
-            "pulsaciones_correctas": 71,
-            "J1": {
-                "letra_actual": "U",
-                "x": 1369,
-                "y": 178.79999999999998,
-                "score": 1082,
-                "fallos": 1,
-                "color": [
-                    255,
-                    0,
-                    0
-                ],
-                "anim_offset": 0.0014787423493260057
-            }
         }
     }
 ]

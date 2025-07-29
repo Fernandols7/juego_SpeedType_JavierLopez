@@ -1341,11 +1341,8 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                         if typed_letter == active_letter:
                             pulsaciones_correctas += 1
                             if acierto_sound: acierto_sound.play()
-                            jugadores[current_turn_player]["score"] += (1 + racha_actual)
+                            jugadores[current_turn_player]["score"] += 1  # Puntos fijos por acierto en Versus
                             racha_actual += 1
-                            crear_particulas(active_letter_x + (fuente_letras.get_rect(active_letter).width // 2),
-                                            active_letter_y + (fuente_letras.get_rect(active_letter).height // 2),
-                                            jugadores[current_turn_player]["color"])
                         else:
                             if fallo_sound: fallo_sound.play()
                             racha_actual = 0
@@ -1455,7 +1452,8 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             run = False
         
         # Mostrar Racha (Combo)
-        if racha_actual > 1:
+        # Mostrar Racha (Combo) solo en modo 1 jugador
+        if num_jugadores == 1 and racha_actual > 1:
             combo_text = f"COMBO x{racha_actual}"
             combo_color = ROJO if racha_actual >= 20 else AMARILLO if racha_actual >= 10 else BLANCO
             
@@ -1464,12 +1462,12 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             
             offset_x = 0
             offset_y = 0
-            if racha_actual >= 15: # Pequeña vibración en combos altos
+            if racha_actual >= 15:
                 offset_x = random.randint(-2, 2)
                 offset_y = random.randint(-2, 2)
 
             pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
-            pos_y = 90 + offset_y if num_jugadores == 2 else 20 + offset_y # Ajustar posición para Versus
+            pos_y = 20 + offset_y
             pantalla.blit(texto_surf, (pos_x, pos_y))
 
         btn_pausa.draw(pantalla)
