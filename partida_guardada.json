@@ -1,5 +1,84 @@
 [
     {
+        "timestamp": "2025-07-29T19:17:06.312145",
+        "mode": "versus",
+        "state": {
+            "velocidad": 1.0,
+            "tiempo_transcurrido": 18.19239115715027,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 20,
+            "J1": {
+                "score": 10,
+                "fallos": 0,
+                "color": [
+                    0,
+                    255,
+                    0
+                ]
+            },
+            "J2": {
+                "score": 10,
+                "fallos": 0,
+                "color": [
+                    255,
+                    255,
+                    0
+                ]
+            },
+            "time_limit_seconds": 300,
+            "current_turn_player": "J1",
+            "active_letter": "Y",
+            "active_letter_x": 162,
+            "active_letter_y": 162.42000000000007
+        }
+    },
+    {
+        "timestamp": "2025-07-29T19:08:26.277957",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.5,
+            "tiempo_transcurrido": 1.6212258338928223,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 0,
+            "J1": {
+                "letra_actual": "W",
+                "x": 993,
+                "y": 145.25999999999996,
+                "score": 0,
+                "fallos": 0,
+                "color": [
+                    128,
+                    0,
+                    128
+                ],
+                "anim_offset": 6.135335308760826
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-29T18:49:18.928688",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.5,
+            "tiempo_transcurrido": 9.854795217514038,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 10,
+            "J1": {
+                "letra_actual": "X",
+                "x": 898,
+                "y": 85.77000000000001,
+                "score": 55,
+                "fallos": 0,
+                "color": [
+                    128,
+                    0,
+                    128
+                ],
+                "anim_offset": 1.4655576643900703
+            }
+        }
+    },
+    {
         "timestamp": "2025-07-28T19:13:41.383711",
         "mode": "arcane",
         "state": {
@@ -53,85 +132,6 @@
             "active_letter": "N",
             "active_letter_x": 1270,
             "active_letter_y": 67.8
-        }
-    },
-    {
-        "timestamp": "2025-07-27T20:07:46.716818",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 1.5,
-            "tiempo_transcurrido": 22.100466012954712,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 29,
-            "J1": {
-                "letra_actual": "E",
-                "x": 1266,
-                "y": 165.41999999999996,
-                "score": 205,
-                "fallos": 4,
-                "color": [
-                    255,
-                    165,
-                    0
-                ],
-                "anim_offset": 0.026251528459929955
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-27T19:37:03.226554",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 5.0,
-            "tiempo_transcurrido": 67.25728416442871,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 62,
-            "J1": {
-                "letra_actual": "P",
-                "x": 187,
-                "y": 104.99999999999996,
-                "score": 1353,
-                "fallos": 0,
-                "color": [
-                    255,
-                    165,
-                    0
-                ],
-                "anim_offset": 2.762684531394191
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-25T21:07:38.733694",
-        "mode": "versus",
-        "state": {
-            "velocidad": 5.4890000000000185,
-            "tiempo_transcurrido": 59.610408782958984,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 83,
-            "J1": {
-                "score": 791,
-                "fallos": 2,
-                "color": [
-                    0,
-                    255,
-                    0
-                ]
-            },
-            "J2": {
-                "score": 802,
-                "fallos": 1,
-                "color": [
-                    255,
-                    255,
-                    0
-                ]
-            },
-            "time_limit_seconds": 60,
-            "current_turn_player": "J1",
-            "active_letter": "Y",
-            "active_letter_x": 2,
-            "active_letter_y": 366.21468000000095
         }
     }
 ]

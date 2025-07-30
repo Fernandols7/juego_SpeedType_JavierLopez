@@ -7,6 +7,7 @@ import json            # Para guardar y cargar la configuración del juego en un
 import os              # Para interactuar con el sistema operativo (rutas de archivos)
 import sys             # Para controlar el sistema (salir del juego)
 from datetime import datetime # Para gestionar las marcas de tiempo de las partidas guardadas
+from powerups import PowerUp # Importa la clase PowerUp (Ayudas en el juego) desde powerups.py
 
 # ========================
 # CONFIGURACIÓN INICIAL
@@ -654,7 +655,7 @@ def pantalla_menu_principal():
 # ========================
 def pantalla_seleccion_modo_juego():
     fuente_titulo_estilo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60)
-    fuente_opciones_estilo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 40)
+    fuente_opciones_estilo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
 
     btn_arcane = Button(ANCHO // 2 - 150, ALTO // 2 - 100, 300, 70, "MODO ARCANE (1P)", fuente_opciones_estilo, GRIS_OSCURO, GRIS_CLARO)
     btn_arcane.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 3)
@@ -1189,6 +1190,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     btn_pausa.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
     
     racha_actual = 0
+    power_up = PowerUp()
     nivel_actual = 1
     nivel_mostrado = False
     tiempo_mostrar_nivel = 0
@@ -1343,6 +1345,9 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                             if acierto_sound: acierto_sound.play()
                             jugadores[current_turn_player]["score"] += 1  # Puntos fijos por acierto en Versus
                             racha_actual += 1
+                            if racha_actual == 20 and not power_up.esta_activo("ralentizar"):
+                                power_up.activar("ralentizar")
+                                velocidad /= 2  # Reduce la velocidad por efecto del power-up
                         else:
                             if fallo_sound: fallo_sound.play()
                             racha_actual = 0
@@ -1469,6 +1474,18 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
             pos_y = 20 + offset_y
             pantalla.blit(texto_surf, (pos_x, pos_y))
+            
+        # Actualizar estado del power-up
+        terminado = power_up.actualizar()
+        if terminado == "ralentizar":
+            velocidad *= 2  # restaurar velocidad original
+
+        # Mostrar en pantalla si hay uno activo
+        if power_up.activo:
+            fuente_power = pygame.freetype.SysFont("arial", 25)
+            tiempo_restante = max(0, int(power_up.duracion - (time.time() - power_up.tiempo_activado)))
+            fuente_power.render_to(pantalla, (ANCHO - 250, ALTO - 40), f"Power-Up: {power_up.activo} ({tiempo_restante}s)", BLANCO)
+
 
         btn_pausa.draw(pantalla)
         pygame.display.flip()
