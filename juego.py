@@ -877,7 +877,7 @@ def pantalla_de_pausa():
 # ========================
 # GAME OVER Y PANTALLA DE RESULTADOS
 # ========================
-def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, scores_j2=None):
+def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, scores_j2=None, racha_max=None, racha_max_j1=None, racha_max_j2=None):
     fuente_ui_go_text = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 40)
     fuente_ui_go_stats = pygame.freetype.SysFont("arial", 30)
     fuente_ui_go_btns = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
@@ -895,13 +895,12 @@ def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, s
                 sys.exit()
         pygame.time.delay(100)
 
-    # Lógica para game over de 1 jugador (Arcane)
     if num_jugadores == 1:
         if check_if_highscore(score):
             pantalla_ingresar_nombre(score)
             pantalla_highscores()
             return "menu_principal"
-        
+
         btn_reiniciar = Button(ANCHO // 2 - 150, ALTO // 2 + 80, 140, 60, "REINICIAR", fuente_ui_go_btns, GRIS_OSCURO, GRIS_CLARO)
         btn_reiniciar.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
         btn_salir_go = Button(ANCHO // 2 + 10, ALTO // 2 + 80, 140, 60, "SALIR", fuente_ui_go_btns, GRIS_OSCURO, GRIS_CLARO)
@@ -927,20 +926,26 @@ def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, s
             t1_rect.center = (ANCHO // 2, 200)
             render_text_gradient(fuente_ui_go_text, "¡GAME OVER!", t1_rect, pantalla, [ROJO, (255, 100, 0)], COLOR_CONTORNO, 3)
 
-            t2_surf, t2_rect = fuente_ui_go_stats.render(f"Puntaje: {score}", BLANCO)
-            t3_surf, t3_rect = fuente_ui_go_stats.render(f"Aciertos: {aciertos} Fallos: {fallos} Precisión: {prec:.2f}%", BLANCO)
+            y_stats = 250
+            t2_surf, _ = fuente_ui_go_stats.render(f"Puntaje: {score}", BLANCO)
+            pantalla.blit(t2_surf, (ANCHO//2 - t2_surf.get_width()//2, y_stats))
 
-            pantalla.blit(t2_surf, (ANCHO//2 - t2_surf.get_width()//2, 250)) 
-            pantalla.blit(t3_surf, (ANCHO//2 - t3_surf.get_width()//2, 300)) 
-            
+            y_stats += 50
+            t3_surf, _ = fuente_ui_go_stats.render(f"Puntaje: {aciertos} Fallos: {fallos} Precisión: {prec:.2f}%", BLANCO)
+            pantalla.blit(t3_surf, (ANCHO//2 - t3_surf.get_width()//2, y_stats))
+
+            if racha_max is not None:
+                y_stats += 50
+                racha_surf, _ = fuente_ui_go_stats.render(f"Racha máxima: {racha_max}", BLANCO)
+                pantalla.blit(racha_surf, (ANCHO//2 - racha_surf.get_width()//2, y_stats))
+
             btn_reiniciar.draw(pantalla)
             btn_salir_go.draw(pantalla)
 
             pygame.display.flip()
             clock.tick(60)
 
-    # Lógica para pantalla de resultados de 2 jugadores (Versus)
-    else: # num_jugadores == 2
+    else:
         fuente_resultado_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60)
         fuente_resultado_texto = pygame.freetype.SysFont("arial", 40)
         fuente_botones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
@@ -988,6 +993,14 @@ def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, s
             surf_j2, _ = fuente_resultado_texto.render(texto_j2, AMARILLO)
             pantalla.blit(surf_j1, (ANCHO // 4 - surf_j1.get_width() // 2, 200))
             pantalla.blit(surf_j2, (3 * ANCHO // 4 - surf_j2.get_width() // 2, 200))
+
+            if racha_max_j1 is not None:
+                racha_j1_surf, _ = fuente_resultado_texto.render(f"Racha: {racha_max_j1}", VERDE)
+                pantalla.blit(racha_j1_surf, (ANCHO // 4 - racha_j1_surf.get_width() // 2, 260))
+
+            if racha_max_j2 is not None:
+                racha_j2_surf, _ = fuente_resultado_texto.render(f"Racha: {racha_max_j2}", AMARILLO)
+                pantalla.blit(racha_j2_surf, (3 * ANCHO // 4 - racha_j2_surf.get_width() // 2, 260))
 
             if ganador != "EMPATE":
                 pygame.draw.rect(
@@ -1184,6 +1197,10 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     # Se crea la fuente aquí para que siempre use la configuración actual al iniciar el juego
     fuente_letras = pygame.freetype.SysFont(nombre_fuente, tam)
     fuente_ui = pygame.freetype.SysFont("arial", 30)
+
+    img_fuego = pygame.image.load("fire.png").convert_alpha()  # Carga la imagen con transparencia
+    img_fuego = pygame.transform.scale(img_fuego, (40, 60))    # Ajusta su tamaño a 50x50 píxeles
+
     
     fuente_btn_pausa = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 20)
     btn_pausa = Button(ANCHO - 120, 10, 110, 40, "PAUSA", fuente_btn_pausa, GRIS_OSCURO, GRIS_CLARO)
@@ -1225,22 +1242,29 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             tiempo_transcurrido_cargado = initial_state.get("tiempo_transcurrido", 0)
             fallos_limit = initial_state.get("fallos_limit", fallos_limit)
             pulsaciones_correctas = initial_state.get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para niveles
+            # Cargar racha actual para el jugador 1
+            if "racha_actual" in initial_state["J1"]:
+                jugadores["J1"]["racha_actual"] = initial_state["J1"]["racha_actual"]
+            else:
+                jugadores["J1"]["racha_actual"] = 0 # Asegurar que exista
             # Recalcular nivel al cargar
             if pulsaciones_correctas >= 80: nivel_actual = 3
             elif pulsaciones_correctas >= 30: nivel_actual = 2
             else: nivel_actual = 1
         else:
-            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi)}} # Usar 'color' de la configuración, añadir anim_offset
+            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi), "racha_actual": 0}} # Usar 'color' de la configuración, añadir anim_offset
             
     else: # num_jugadores == 2
         game_mode = "versus"
         # Los colores de los jugadores en versus son fijos, no de la configuración general
-        jugadores = {"J1": {"score": 0, "fallos": 0, "color": VERDE}, "J2": {"score": 0, "fallos": 0, "color": AMARILLO}}
+        jugadores = {"J1": {"score": 0, "fallos": 0, "color": VERDE, "racha_actual": 0}, "J2": {"score": 0, "fallos": 0, "color": AMARILLO, "racha_actual": 0}}
         if initial_state:
             jugadores["J1"]["score"] = initial_state["J1"]["score"]
             jugadores["J1"]["fallos"] = initial_state["J1"]["fallos"]
+            jugadores["J1"]["racha_actual"] = initial_state["J1"].get("racha_actual", 0) # Cargar racha individual
             jugadores["J2"]["score"] = initial_state["J2"]["score"]
             jugadores["J2"]["fallos"] = initial_state["J2"]["fallos"]
+            jugadores["J2"]["racha_actual"] = initial_state["J2"].get("racha_actual", 0) # Cargar racha individual
             current_turn_player = initial_state.get("current_turn_player", "J1")
             active_letter = initial_state.get("active_letter", chr(random.randint(65, 90)))
             active_letter_x = initial_state.get("active_letter_x", (ANCHO // 4 if current_turn_player == "J1" else 3 * ANCHO // 4) - 25)
@@ -1268,6 +1292,20 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         mostrar_conteo_regresivo(3, fuente_ui, BLANCO)
         tiempo_inicio_juego = time.time() # Reiniciar el tiempo de inicio después del conteo
 
+
+
+    racha_max = {}
+    if num_jugadores == 1:
+        racha_max["J1"] = 0
+    else:
+        racha_max["J1"] = 0
+        racha_max["J2"] = 0
+
+
+    racha_mensaje = None
+    tiempo_racha_mensaje = 0
+    duracion_racha_mensaje = 2  # segundos
+    run = True
     run = True
     while run:
         tiempo_actual = time.time()
@@ -1287,6 +1325,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 if accion_pausa == "guardar_y_salir":
                     estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "pulsaciones_correctas": pulsaciones_correctas, "J1": jugadores["J1"]}
                     if num_jugadores == 2:
+                        # Guardar racha individual de J2 también
                         estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
                     guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
                     return "menu_principal"
@@ -1307,6 +1346,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                     if accion_pausa == "guardar_y_salir":
                         estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "pulsaciones_correctas": pulsaciones_correctas, "J1": jugadores["J1"]}
                         if num_jugadores == 2:
+                            # Guardar racha individual de J2 también
                             estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
                         guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
                         return "menu_principal"
@@ -1320,15 +1360,27 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 elif pygame.K_a <= evento.key <= pygame.K_z:
                     typed_letter = pygame.key.name(evento.key).upper() 
                     
-                    # Dentro de elif evento.key == pygame.K_a <= evento.key <= pygame.K_z:
-
                     if num_jugadores == 1:
                         j1 = jugadores["J1"]
                         if typed_letter == j1["letra_actual"]:
                             pulsaciones_correctas += 1
+
+                            # Mostrar mensaje llamativo si racha es múltiplo de 10
+                            if j1["racha_actual"] % 20 == 0 and j1["racha_actual"] > 0:
+                                racha_mensaje = f"Racha x{j1['racha_actual']}!"
+                                tiempo_racha_mensaje = time.time()
                             if acierto_sound: acierto_sound.play()
-                            j1["score"] += (1 + racha_actual)
-                            racha_actual += 1
+                            j1["score"] += (1 + j1["racha_actual"]) # Usa la racha individual del J1
+                            j1["racha_actual"] += 1 # Incrementa la racha individual
+
+                            if j1["racha_actual"] > racha_max["J1"]:
+                                racha_max["J1"] = j1["racha_actual"]
+
+                            
+                            # Activar power-up para 1 jugador si se alcanza la racha
+                            if j1["racha_actual"] == 20 and not power_up.esta_activo("ralentizar"):
+                                power_up.activar("ralentizar")
+                                velocidad /= 2  # Reduce la velocidad por efecto del power-up
                             crear_particulas(j1["x"] + 25, j1["y"] + 25, j1["color"])
                             j1["letra_actual"] = chr(random.randint(65, 90))
                             margen_seguro = tam
@@ -1337,20 +1389,34 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                             j1["anim_offset"] = random.uniform(0, 2 * math.pi)
                         elif count_wrong_key_faults:
                             if fallo_sound: fallo_sound.play()
-                            racha_actual = 0
+                            j1["racha_actual"] = 0 # Resetea la racha individual
                             j1["fallos"] += 1
-                    else:
+                    else: # num_jugadores == 2
+                        # Usa la racha individual del jugador actual
+                        player_racha = jugadores[current_turn_player]["racha_actual"]
                         if typed_letter == active_letter:
                             pulsaciones_correctas += 1
                             if acierto_sound: acierto_sound.play()
                             jugadores[current_turn_player]["score"] += 1  # Puntos fijos por acierto en Versus
-                            racha_actual += 1
-                            if racha_actual == 20 and not power_up.esta_activo("ralentizar"):
+                            jugadores[current_turn_player]["racha_actual"] += 1 # Incrementa la racha individual del jugador actual
+
+                            # Para mostrar racha maxima
+                            if jugadores[current_turn_player]["racha_actual"] > racha_max[current_turn_player]:
+                                racha_max[current_turn_player] = jugadores[current_turn_player]["racha_actual"]
+
+
+                            # Mensaje de racha para cada jugador si llega a múltiplos de 10
+                            if jugadores[current_turn_player]["racha_actual"] % 20 == 0 and jugadores[current_turn_player]["racha_actual"] > 0:
+                                racha_mensaje = f" {current_turn_player}: Racha x{jugadores[current_turn_player]['racha_actual']}!"
+                                tiempo_racha_mensaje = time.time()
+
+                            # La activación del power-up sigue siendo global pero se basa en la racha individual
+                            if jugadores[current_turn_player]["racha_actual"] == 20 and not power_up.esta_activo("ralentizar"):
                                 power_up.activar("ralentizar")
                                 velocidad /= 2  # Reduce la velocidad por efecto del power-up
                         else:
                             if fallo_sound: fallo_sound.play()
-                            racha_actual = 0
+                            jugadores[current_turn_player]["racha_actual"] = 0 # Resetea la racha individual
                             jugadores[current_turn_player]["fallos"] += 1
 
                         active_letter = chr(random.randint(65, 90))
@@ -1379,7 +1445,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             fuente_letras.render_to(pantalla, (j1["x"] + desplazamiento_x, j1["y"]), j1["letra_actual"], j1["color"])
             if j1["y"] > ALTO:
                 if fallo_sound: fallo_sound.play()
-                racha_actual = 0
+                j1["racha_actual"] = 0 # Resetea la racha individual
                 j1["fallos"] += 1
                 j1["letra_actual"] = chr(random.randint(65, 90))
                 margen_seguro = tam
@@ -1392,7 +1458,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             fuente_letras.render_to(pantalla, (active_letter_x + desplazamiento_x, active_letter_y), active_letter, jugadores[current_turn_player]["color"])
             if active_letter_y > ALTO:
                 if fallo_sound: fallo_sound.play()
-                racha_actual = 0
+                jugadores[current_turn_player]["racha_actual"] = 0 # Resetea la racha individual
                 jugadores[current_turn_player]["fallos"] += 1
                 active_letter = chr(random.randint(65, 90))
                 active_letter_y = 0
@@ -1439,9 +1505,29 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
 
         # Interfaz de usuario (Score, Fallos)
         player1_ui_color = color if num_jugadores == 1 else jugadores['J1']['color']
-        fuente_ui.render_to(pantalla, (10, 10), f"J1: {jugadores['J1']['score']} (Fallos: {jugadores['J1']['fallos']})", player1_ui_color)
+        
+        # Cambiar color dinámicamente según la racha
+        racha_j1 = jugadores['J1']['racha_actual']
+        racha_color_j1 = ROJO if racha_j1 >= 20 else AMARILLO if racha_j1 >= 10 else jugadores['J1']['color']
+
+        # Mostrar puntuación y racha de J1 con color de racha
+        fuente_ui.render_to(pantalla, (10, 10),
+            f"J1: {jugadores['J1']['score']} (Fallos: {jugadores['J1']['fallos']}) Racha: {racha_j1}",
+            racha_color_j1
+        )
+
+
         if num_jugadores == 2:
-            fuente_ui.render_to(pantalla, (ANCHO // 2 + 10, 10), f"J2: {jugadores['J2']['score']} (Fallos: {jugadores['J2']['fallos']})", jugadores['J2']['color'])
+            # Cambiar color dinámico para J2
+            racha_j2 = jugadores['J2']['racha_actual']
+            racha_color_j2 = ROJO if racha_j2 >= 20 else AMARILLO if racha_j2 >= 10 else jugadores['J2']['color']
+
+            # Mostrar puntuación y racha de J2 con color de racha
+            fuente_ui.render_to(pantalla, (ANCHO // 2 + 10, 10),
+                f"J2: {jugadores['J2']['score']} (Fallos: {jugadores['J2']['fallos']}) Racha: {racha_j2}",
+                racha_color_j2
+            )
+
             # Indicador de turno
             pygame.draw.circle(pantalla, jugadores[current_turn_player]['color'], (ANCHO // 4 if current_turn_player == 'J1' else 3 * ANCHO // 4, 50), 10)
 
@@ -1458,16 +1544,16 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         
         # Mostrar Racha (Combo)
         # Mostrar Racha (Combo) solo en modo 1 jugador
-        if num_jugadores == 1 and racha_actual > 1:
-            combo_text = f"COMBO x{racha_actual}"
-            combo_color = ROJO if racha_actual >= 20 else AMARILLO if racha_actual >= 10 else BLANCO
+        if num_jugadores == 1 and jugadores["J1"]["racha_actual"] > 1: # Usa la racha individual del J1
+            combo_text = f"COMBO x{jugadores['J1']['racha_actual']}"
+            combo_color = ROJO if jugadores['J1']['racha_actual'] >= 20 else AMARILLO if jugadores['J1']['racha_actual'] >= 10 else BLANCO
             
             fuente_combo = pygame.freetype.SysFont("arial", 40)
             texto_surf, texto_rect = fuente_combo.render(combo_text, combo_color)
             
             offset_x = 0
             offset_y = 0
-            if racha_actual >= 15:
+            if jugadores['J1']['racha_actual'] >= 15:
                 offset_x = random.randint(-2, 2)
                 offset_y = random.randint(-2, 2)
 
@@ -1488,6 +1574,25 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
 
 
         btn_pausa.draw(pantalla)
+        # Mostrar mensaje llamativo de racha en el centro
+        if racha_mensaje and (time.time() - tiempo_racha_mensaje < duracion_racha_mensaje):
+            fuente_racha = pygame.freetype.SysFont("arial", 50)
+            texto_surf, texto_rect = fuente_racha.render(racha_mensaje, ROJO)
+
+            # Mover el texto un poco a la derecha para hacer espacio al icono
+            texto_rect.center = (ANCHO // 2 + 30, ALTO // 2 - 100)
+
+            # Posicionar el icono de fuego a la izquierda del texto
+            icono_rect = img_fuego.get_rect()
+            icono_rect.right = texto_rect.left - 10   # 10 px de espacio entre icono y texto
+            icono_rect.centery = texto_rect.centery   # Alineado verticalmente
+
+            pantalla.blit(img_fuego, icono_rect)      # Mostrar icono
+            pantalla.blit(texto_surf, texto_rect)     # Mostrar texto
+
+        else:
+            racha_mensaje = None
+
         pygame.display.flip()
 
     # Fin del juego
@@ -1495,10 +1600,20 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     total_fallos = sum(j["fallos"] for j in jugadores.values())
 
     if num_jugadores == 1:
-        return pantalla_fin_juego(jugadores['J1']['score'], total_aciertos, total_fallos, num_jugadores=1)
+        return pantalla_fin_juego(
+            jugadores['J1']['score'], total_aciertos, total_fallos,
+            num_jugadores=1,
+            racha_max=racha_max["J1"]
+        )
     else:
-        # Pasa los scores individuales para el modo Versus
-        return pantalla_fin_juego(0, total_aciertos, total_fallos, num_jugadores=2, scores_j1=jugadores['J1']['score'], scores_j2=jugadores['J2']['score'])
+        return pantalla_fin_juego(
+            0, total_aciertos, total_fallos,
+            num_jugadores=2,
+            scores_j1=jugadores['J1']['score'],
+            scores_j2=jugadores['J2']['score'],
+            racha_max_j1=racha_max["J1"],
+            racha_max_j2=racha_max["J2"]
+        )
 
 # ========================
 # MODO ARCANE (1 Jugador)

@@ -1,5 +1,88 @@
 [
     {
+        "timestamp": "2025-07-30T20:40:11.907180",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 2.9999999999998903,
+            "tiempo_transcurrido": 34.97442626953125,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 44,
+            "J1": {
+                "letra_actual": "C",
+                "x": 693,
+                "y": 131.87675999999536,
+                "score": 990,
+                "fallos": 0,
+                "color": [
+                    0,
+                    0,
+                    255
+                ],
+                "anim_offset": 4.7837751925971235,
+                "racha_actual": 44
+            }
+        }
+    },
+    {
+        "timestamp": "2025-07-30T20:18:26.918653",
+        "mode": "versus",
+        "state": {
+            "velocidad": 5.0,
+            "tiempo_transcurrido": 50.50641965866089,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 65,
+            "J1": {
+                "score": 32,
+                "fallos": 1,
+                "color": [
+                    0,
+                    255,
+                    0
+                ],
+                "racha_actual": 31
+            },
+            "J2": {
+                "score": 33,
+                "fallos": 0,
+                "color": [
+                    255,
+                    255,
+                    0
+                ],
+                "racha_actual": 33
+            },
+            "time_limit_seconds": 120,
+            "current_turn_player": "J1",
+            "active_letter": "M",
+            "active_letter_x": 503,
+            "active_letter_y": 174.29999999999995
+        }
+    },
+    {
+        "timestamp": "2025-07-30T18:38:36.502879",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 4.125999999999767,
+            "tiempo_transcurrido": 53.970473289489746,
+            "fallos_limit": 10,
+            "pulsaciones_correctas": 59,
+            "J1": {
+                "letra_actual": "W",
+                "x": 169,
+                "y": 169.27835999999053,
+                "score": 1770,
+                "fallos": 0,
+                "color": [
+                    128,
+                    0,
+                    128
+                ],
+                "anim_offset": 1.2417029204572891,
+                "racha_actual": 59
+            }
+        }
+    },
+    {
         "timestamp": "2025-07-29T19:17:06.312145",
         "mode": "versus",
         "state": {
@@ -53,85 +136,6 @@
                 ],
                 "anim_offset": 6.135335308760826
             }
-        }
-    },
-    {
-        "timestamp": "2025-07-29T18:49:18.928688",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 1.5,
-            "tiempo_transcurrido": 9.854795217514038,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 10,
-            "J1": {
-                "letra_actual": "X",
-                "x": 898,
-                "y": 85.77000000000001,
-                "score": 55,
-                "fallos": 0,
-                "color": [
-                    128,
-                    0,
-                    128
-                ],
-                "anim_offset": 1.4655576643900703
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-28T19:13:41.383711",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 1.6420000000000001,
-            "tiempo_transcurrido": 7.196356773376465,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 32,
-            "J1": {
-                "letra_actual": "C",
-                "x": 840,
-                "y": 58.32168000000001,
-                "score": 416,
-                "fallos": 1,
-                "color": [
-                    255,
-                    255,
-                    0
-                ],
-                "anim_offset": 1.6648398522585588
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-27T20:09:37.470187",
-        "mode": "versus",
-        "state": {
-            "velocidad": 2.0,
-            "tiempo_transcurrido": 7.083996295928955,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 9,
-            "J1": {
-                "score": 13,
-                "fallos": 0,
-                "color": [
-                    0,
-                    255,
-                    0
-                ]
-            },
-            "J2": {
-                "score": 14,
-                "fallos": 0,
-                "color": [
-                    255,
-                    255,
-                    0
-                ]
-            },
-            "time_limit_seconds": 60,
-            "current_turn_player": "J2",
-            "active_letter": "N",
-            "active_letter_x": 1270,
-            "active_letter_y": 67.8
         }
     }
 ]
