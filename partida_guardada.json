@@ -1,5 +1,59 @@
 [
     {
+        "timestamp": "2025-08-01T14:50:43.034875",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 5.0,
+            "tiempo_transcurrido": 90.66468834877014,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "S",
+                "x": 153,
+                "y": 585.6000000000008,
+                "score": 412,
+                "fallos": 0,
+                "color": [
+                    0,
+                    0,
+                    255
+                ],
+                "anim_offset": 5.271833049928754,
+                "racha_actual": 122,
+                "pulsaciones_correctas": 122
+            },
+            "bomb_charge": 0,
+            "bomb_ready_to_detonate": false,
+            "hits_since_last_bomb": 15
+        }
+    },
+    {
+        "timestamp": "2025-08-01T14:15:52.274828",
+        "mode": "arcane",
+        "state": {
+            "velocidad": 1.5,
+            "tiempo_transcurrido": 6.428137540817261,
+            "fallos_limit": 10,
+            "J1": {
+                "letra_actual": "C",
+                "x": 1019,
+                "y": 58.5,
+                "score": 8,
+                "fallos": 0,
+                "color": [
+                    255,
+                    255,
+                    0
+                ],
+                "anim_offset": 0.18702818843858454,
+                "racha_actual": 8,
+                "pulsaciones_correctas": 8
+            },
+            "bomb_charge": 0,
+            "bomb_ready_to_detonate": false,
+            "hits_since_last_bomb": 8
+        }
+    },
+    {
         "timestamp": "2025-07-30T20:40:11.907180",
         "mode": "arcane",
         "state": {
@@ -20,121 +74,6 @@
                 ],
                 "anim_offset": 4.7837751925971235,
                 "racha_actual": 44
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-30T20:18:26.918653",
-        "mode": "versus",
-        "state": {
-            "velocidad": 5.0,
-            "tiempo_transcurrido": 50.50641965866089,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 65,
-            "J1": {
-                "score": 32,
-                "fallos": 1,
-                "color": [
-                    0,
-                    255,
-                    0
-                ],
-                "racha_actual": 31
-            },
-            "J2": {
-                "score": 33,
-                "fallos": 0,
-                "color": [
-                    255,
-                    255,
-                    0
-                ],
-                "racha_actual": 33
-            },
-            "time_limit_seconds": 120,
-            "current_turn_player": "J1",
-            "active_letter": "M",
-            "active_letter_x": 503,
-            "active_letter_y": 174.29999999999995
-        }
-    },
-    {
-        "timestamp": "2025-07-30T18:38:36.502879",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 4.125999999999767,
-            "tiempo_transcurrido": 53.970473289489746,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 59,
-            "J1": {
-                "letra_actual": "W",
-                "x": 169,
-                "y": 169.27835999999053,
-                "score": 1770,
-                "fallos": 0,
-                "color": [
-                    128,
-                    0,
-                    128
-                ],
-                "anim_offset": 1.2417029204572891,
-                "racha_actual": 59
-            }
-        }
-    },
-    {
-        "timestamp": "2025-07-29T19:17:06.312145",
-        "mode": "versus",
-        "state": {
-            "velocidad": 1.0,
-            "tiempo_transcurrido": 18.19239115715027,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 20,
-            "J1": {
-                "score": 10,
-                "fallos": 0,
-                "color": [
-                    0,
-                    255,
-                    0
-                ]
-            },
-            "J2": {
-                "score": 10,
-                "fallos": 0,
-                "color": [
-                    255,
-                    255,
-                    0
-                ]
-            },
-            "time_limit_seconds": 300,
-            "current_turn_player": "J1",
-            "active_letter": "Y",
-            "active_letter_x": 162,
-            "active_letter_y": 162.42000000000007
-        }
-    },
-    {
-        "timestamp": "2025-07-29T19:08:26.277957",
-        "mode": "arcane",
-        "state": {
-            "velocidad": 1.5,
-            "tiempo_transcurrido": 1.6212258338928223,
-            "fallos_limit": 10,
-            "pulsaciones_correctas": 0,
-            "J1": {
-                "letra_actual": "W",
-                "x": 993,
-                "y": 145.25999999999996,
-                "score": 0,
-                "fallos": 0,
-                "color": [
-                    128,
-                    0,
-                    128
-                ],
-                "anim_offset": 6.135335308760826
             }
         }
     }

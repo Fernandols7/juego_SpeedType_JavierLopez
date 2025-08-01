@@ -128,17 +128,17 @@ def dibujar_estrellas(velocidad=1):
 # ========================
 particulas = [] # Lista para almacenar partículas
 
-def crear_particulas(x, y, color):
+def crear_particulas(x, y, color, num_particulas=10, min_radius=2, max_radius=5, min_speed=-2, max_speed=2, life=30):
     """Crea un rastro de partículas en la posición dada."""
-    for _ in range(10): # Genera 10 partículas
+    for _ in range(num_particulas): # Genera num_particulas
         particulas.append({
             'x': x,
             'y': y,
-            'vx': random.uniform(-2, 2), # Velocidad en X
-            'vy': random.uniform(-2, 2), # Velocidad en Y
-            'radius': random.randint(2, 5), # Tamaño
+            'vx': random.uniform(min_speed, max_speed), # Velocidad en X
+            'vy': random.uniform(min_speed, max_speed), # Velocidad en Y
+            'radius': random.randint(min_radius, max_radius), # Tamaño
             'color': color,
-            'life': 30 # Duración de vida en fotogramas
+            'life': life # Duración de vida en fotogramas
         })
 
 def actualizar_y_dibujar_particulas():
@@ -877,7 +877,7 @@ def pantalla_de_pausa():
 # ========================
 # GAME OVER Y PANTALLA DE RESULTADOS
 # ========================
-def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, scores_j2=None, racha_max=None, racha_max_j1=None, racha_max_j2=None):
+def pantalla_fin_juego(score, aciertos_precision, fallos, num_jugadores, scores_j1=None, scores_j2=None, racha_max=None, racha_max_j1=None, racha_max_j2=None):
     fuente_ui_go_text = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 40)
     fuente_ui_go_stats = pygame.freetype.SysFont("arial", 30)
     fuente_ui_go_btns = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
@@ -896,7 +896,7 @@ def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, s
         pygame.time.delay(100)
 
     if num_jugadores == 1:
-        if check_if_highscore(score):
+        if check_if_highscore(score): # El highscore se basa en el score total
             pantalla_ingresar_nombre(score)
             pantalla_highscores()
             return "menu_principal"
@@ -919,19 +919,19 @@ def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, s
             pantalla.blit(fondo_img, (0, 0))
             dibujar_estrellas()
 
-            total = aciertos + fallos
-            prec = (aciertos / total) * 100 if total else 0
+            total_precision_keys = aciertos_precision + fallos
+            prec = (aciertos_precision / total_precision_keys) * 100 if total_precision_keys else 0
 
             t1_rect = pygame.Rect(0, 0, ANCHO, 50)
             t1_rect.center = (ANCHO // 2, 200)
             render_text_gradient(fuente_ui_go_text, "¡GAME OVER!", t1_rect, pantalla, [ROJO, (255, 100, 0)], COLOR_CONTORNO, 3)
 
             y_stats = 250
-            t2_surf, _ = fuente_ui_go_stats.render(f"Puntaje: {score}", BLANCO)
+            t2_surf, _ = fuente_ui_go_stats.render(f"Puntaje Total: {score}", BLANCO)
             pantalla.blit(t2_surf, (ANCHO//2 - t2_surf.get_width()//2, y_stats))
 
             y_stats += 50
-            t3_surf, _ = fuente_ui_go_stats.render(f"Puntaje: {aciertos} Fallos: {fallos} Precisión: {prec:.2f}%", BLANCO)
+            t3_surf, _ = fuente_ui_go_stats.render(f"Aciertos: {aciertos_precision} Fallos: {fallos} Precisión: {prec:.2f}%", BLANCO)
             pantalla.blit(t3_surf, (ANCHO//2 - t3_surf.get_width()//2, y_stats))
 
             if racha_max is not None:
@@ -990,17 +990,27 @@ def pantalla_fin_juego(score, aciertos, fallos, num_jugadores, scores_j1=None, s
             texto_j1 = f"JUGADOR 1: {score_j1} pts"
             texto_j2 = f"JUGADOR 2: {score_j2} pts"
             surf_j1, _ = fuente_resultado_texto.render(texto_j1, VERDE)
+            surf_j1_precision = f"(Aciertos: {scores_j1['pulsaciones_correctas']})"
+            surf_j1_precision_render, _ = fuente_resultado_texto.render(surf_j1_precision, VERDE)
+
             surf_j2, _ = fuente_resultado_texto.render(texto_j2, AMARILLO)
+            surf_j2_precision = f"(Aciertos: {scores_j2['pulsaciones_correctas']})"
+            surf_j2_precision_render, _ = fuente_resultado_texto.render(surf_j2_precision, AMARILLO)
+
+
             pantalla.blit(surf_j1, (ANCHO // 4 - surf_j1.get_width() // 2, 200))
+            pantalla.blit(surf_j1_precision_render, (ANCHO // 4 - surf_j1_precision_render.get_width() // 2, 235))
             pantalla.blit(surf_j2, (3 * ANCHO // 4 - surf_j2.get_width() // 2, 200))
+            pantalla.blit(surf_j2_precision_render, (3 * ANCHO // 4 - surf_j2_precision_render.get_width() // 2, 235))
 
             if racha_max_j1 is not None:
                 racha_j1_surf, _ = fuente_resultado_texto.render(f"Racha: {racha_max_j1}", VERDE)
-                pantalla.blit(racha_j1_surf, (ANCHO // 4 - racha_j1_surf.get_width() // 2, 260))
+                pantalla.blit(racha_j1_surf, (ANCHO // 4 - racha_j1_surf.get_width() // 2, 280))
 
             if racha_max_j2 is not None:
                 racha_j2_surf, _ = fuente_resultado_texto.render(f"Racha: {racha_max_j2}", AMARILLO)
-                pantalla.blit(racha_j2_surf, (3 * ANCHO // 4 - racha_j2_surf.get_width() // 2, 260))
+                pantalla.blit(racha_j2_surf, (3 * ANCHO // 4 - racha_j2_surf.get_width() // 2, 280))
+
 
             if ganador != "EMPATE":
                 pygame.draw.rect(
@@ -1197,6 +1207,7 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     # Se crea la fuente aquí para que siempre use la configuración actual al iniciar el juego
     fuente_letras = pygame.freetype.SysFont(nombre_fuente, tam)
     fuente_ui = pygame.freetype.SysFont("arial", 30)
+    fuente_bomba = pygame.freetype.SysFont("arial", 40) # Fuente para el mensaje de la bomba
 
     img_fuego = pygame.image.load("fire.png").convert_alpha()  # Carga la imagen con transparencia
     img_fuego = pygame.transform.scale(img_fuego, (40, 60))    # Ajusta su tamaño a 50x50 píxeles
@@ -1206,17 +1217,30 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     btn_pausa = Button(ANCHO - 120, 10, 110, 40, "PAUSA", fuente_btn_pausa, GRIS_OSCURO, GRIS_CLARO)
     btn_pausa.set_logo_style(True, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 2)
     
-    racha_actual = 0
     power_up = PowerUp()
     nivel_actual = 1
     nivel_mostrado = False
     tiempo_mostrar_nivel = 0
     duracion_mensaje_nivel = 4 # Duración en segundos del mensaje de nivel
-    pulsaciones_correctas = 0 # Contador para subir de nivel
-
+    
     anim_amplitud = 15 # Para la animación oscilante en modo Arcade
     anim_frecuencia = 5 # Para la animación oscilante en modo Arcade
     max_speed = 5.0 # Velocidad máxima para el incremento
+
+    # Variables para el power-up de la bomba
+    bomb_charge = 0
+    bomb_ready_to_detonate = False
+    bomb_explosion_display_time = 0
+    BOMB_DETONATE_BONUS_MULTIPLIER = 5 # Puntos por cada carga de la bomba
+    BOMB_ACTIVATION_THRESHOLD_HITS = 50 # Aciertos (pulsaciones_correctas) para que la bomba esté disponible para cargar
+    
+    # Para el contador de pulsaciones desde la última bomba
+    hits_since_last_bomb = 0
+    # Variable para controlar la visualización del mensaje "¡BOMBA LISTA!"
+    bomb_ready_message_visible = False
+    bomb_ready_message_timer = 0
+    BOMB_READY_MESSAGE_DURATION = 2 # segundos
+
 
     if music_loaded:
         if not pygame.mixer.music.get_busy():
@@ -1241,30 +1265,40 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             velocidad = initial_state.get("velocidad", initial_speed)
             tiempo_transcurrido_cargado = initial_state.get("tiempo_transcurrido", 0)
             fallos_limit = initial_state.get("fallos_limit", fallos_limit)
-            pulsaciones_correctas = initial_state.get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para niveles
+            # Cargar los dos puntajes y las variables de la bomba
+            jugadores["J1"]["score"] = initial_state["J1"].get("score", 0) # Score total
+            jugadores["J1"]["pulsaciones_correctas"] = initial_state["J1"].get("pulsaciones_correctas", 0) # Pulsaciones para precisión y nivel
+            bomb_charge = initial_state.get("bomb_charge", 0) # Cargar carga de la bomba
+            bomb_ready_to_detonate = initial_state.get("bomb_ready_to_detonate", False) # Cargar estado de la bomba
+            hits_since_last_bomb = initial_state.get("hits_since_last_bomb", 0) # Cargar aciertos desde última bomba
+
             # Cargar racha actual para el jugador 1
             if "racha_actual" in initial_state["J1"]:
                 jugadores["J1"]["racha_actual"] = initial_state["J1"]["racha_actual"]
             else:
                 jugadores["J1"]["racha_actual"] = 0 # Asegurar que exista
             # Recalcular nivel al cargar
-            if pulsaciones_correctas >= 80: nivel_actual = 3
-            elif pulsaciones_correctas >= 30: nivel_actual = 2
+            if jugadores["J1"]["pulsaciones_correctas"] >= 80: nivel_actual = 3
+            elif jugadores["J1"]["pulsaciones_correctas"] >= 30: nivel_actual = 2
             else: nivel_actual = 1
         else:
-            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi), "racha_actual": 0}} # Usar 'color' de la configuración, añadir anim_offset
+            jugadores = {"J1": {"letra_actual": chr(random.randint(65, 90)), "x": random.randint(0, ANCHO - 50), "y": 0, "score": 0, "fallos": 0, "color": color, "anim_offset": random.uniform(0, 2 * math.pi), "racha_actual": 0, "pulsaciones_correctas": 0}} # Añadir pulsaciones_correctas
             
     else: # num_jugadores == 2
         game_mode = "versus"
         # Los colores de los jugadores en versus son fijos, no de la configuración general
-        jugadores = {"J1": {"score": 0, "fallos": 0, "color": VERDE, "racha_actual": 0}, "J2": {"score": 0, "fallos": 0, "color": AMARILLO, "racha_actual": 0}}
+        jugadores = {"J1": {"score": 0, "fallos": 0, "color": VERDE, "racha_actual": 0, "pulsaciones_correctas": 0}, "J2": {"score": 0, "fallos": 0, "color": AMARILLO, "racha_actual": 0, "pulsaciones_correctas": 0}}
         if initial_state:
             jugadores["J1"]["score"] = initial_state["J1"]["score"]
             jugadores["J1"]["fallos"] = initial_state["J1"]["fallos"]
             jugadores["J1"]["racha_actual"] = initial_state["J1"].get("racha_actual", 0) # Cargar racha individual
+            jugadores["J1"]["pulsaciones_correctas"] = initial_state["J1"].get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para precisión y nivel
+            
             jugadores["J2"]["score"] = initial_state["J2"]["score"]
             jugadores["J2"]["fallos"] = initial_state["J2"]["fallos"]
             jugadores["J2"]["racha_actual"] = initial_state["J2"].get("racha_actual", 0) # Cargar racha individual
+            jugadores["J2"]["pulsaciones_correctas"] = initial_state["J2"].get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para precisión y nivel
+
             current_turn_player = initial_state.get("current_turn_player", "J1")
             active_letter = initial_state.get("active_letter", chr(random.randint(65, 90)))
             active_letter_x = initial_state.get("active_letter_x", (ANCHO // 4 if current_turn_player == "J1" else 3 * ANCHO // 4) - 25)
@@ -1273,15 +1307,15 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             tiempo_transcurrido_cargado = initial_state.get("tiempo_transcurrido", 0)
             time_limit_seconds = initial_state.get("time_limit_seconds", time_limit_seconds)
             fallos_limit = initial_state.get("fallos_limit", fallos_limit)
-            pulsaciones_correctas = initial_state.get("pulsaciones_correctas", 0) # Cargar pulsaciones correctas para niveles
-            # Recalcular nivel al cargar
-            if pulsaciones_correctas >= 80: nivel_actual = 3
-            elif pulsaciones_correctas >= 30: nivel_actual = 2
+            # La bomba solo aplica en 1 jugador, así que no se cargan aquí para 2 jugadores.
+            # Recalcular nivel al cargar (usando el total de pulsaciones correctas entre ambos jugadores para el nivel global)
+            total_pulsaciones_correctas = jugadores["J1"]["pulsaciones_correctas"] + jugadores["J2"]["pulsaciones_correctas"]
+            if total_pulsaciones_correctas >= 80: nivel_actual = 3
+            elif total_pulsaciones_correctas >= 30: nivel_actual = 2
             else: nivel_actual = 1
         else:
             current_turn_player = "J1"
             active_letter = chr(random.randint(65, 90))
-            active_letter_x = random.randint(0, ANCHO // 2 - 50)
             active_letter_y = 0
             
     tiempo_inicio_juego = time.time()
@@ -1306,7 +1340,6 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
     tiempo_racha_mensaje = 0
     duracion_racha_mensaje = 2  # segundos
     run = True
-    run = True
     while run:
         tiempo_actual = time.time()
         tiempo_transcurrido = (tiempo_actual - tiempo_inicio_juego - tiempo_pausado_total) + tiempo_transcurrido_cargado
@@ -1323,10 +1356,11 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 tiempo_pausado_total += time.time() - tiempo_inicio_pausa
 
                 if accion_pausa == "guardar_y_salir":
-                    estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "pulsaciones_correctas": pulsaciones_correctas, "J1": jugadores["J1"]}
-                    if num_jugadores == 2:
-                        # Guardar racha individual de J2 también
-                        estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
+                    estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit}
+                    if num_jugadores == 1:
+                        estado_actual.update({"J1": jugadores["J1"], "bomb_charge": bomb_charge, "bomb_ready_to_detonate": bomb_ready_to_detonate, "hits_since_last_bomb": hits_since_last_bomb})
+                    elif num_jugadores == 2:
+                        estado_actual.update({"J1": jugadores["J1"], "J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
                     guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
                     return "menu_principal"
                 elif accion_pausa == "salir_sin_guardar":
@@ -1344,10 +1378,11 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                     tiempo_pausado_total += time.time() - tiempo_inicio_pausa
 
                     if accion_pausa == "guardar_y_salir":
-                        estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit, "pulsaciones_correctas": pulsaciones_correctas, "J1": jugadores["J1"]}
-                        if num_jugadores == 2:
-                            # Guardar racha individual de J2 también
-                            estado_actual.update({"J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
+                        estado_actual = {"velocidad": velocidad, "tiempo_transcurrido": tiempo_transcurrido, "fallos_limit": fallos_limit}
+                        if num_jugadores == 1:
+                            estado_actual.update({"J1": jugadores["J1"], "bomb_charge": bomb_charge, "bomb_ready_to_detonate": bomb_ready_to_detonate, "hits_since_last_bomb": hits_since_last_bomb})
+                        elif num_jugadores == 2:
+                            estado_actual.update({"J1": jugadores["J1"], "J2": jugadores["J2"], "time_limit_seconds": time_limit_seconds, "current_turn_player": current_turn_player, "active_letter": active_letter, "active_letter_x": active_letter_x, "active_letter_y": active_letter_y})
                         guardar_partida(estado_actual, game_mode, timestamp_a_actualizar=save_timestamp)
                         return "menu_principal"
                     elif accion_pausa == "salir_sin_guardar":
@@ -1356,6 +1391,21 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                         tiempo_inicio_juego = time.time() 
                         tiempo_transcurrido_cargado = tiempo_transcurrido
 
+                # Manejo del power-up de la bomba (tecla espacio)
+                elif evento.key == pygame.K_SPACE:
+                    if num_jugadores == 1 and bomb_ready_to_detonate:
+                        # Detonación manual de la bomba
+                        j1 = jugadores["J1"]
+                        bonus_points = bomb_charge * BOMB_DETONATE_BONUS_MULTIPLIER
+                        j1["score"] += bonus_points
+                        crear_particulas(ANCHO // 2, ALTO // 2, ROJO, num_particulas=50, min_radius=3, max_radius=8, min_speed=-5, max_speed=5, life=60) # Más partículas grandes
+                        print(f"¡Bomba detonada! Ganaste {bonus_points} puntos de bonus.")
+                        bomb_charge = 0
+                        bomb_ready_to_detonate = False
+                        bomb_ready_message_visible = False # Ocultar mensaje de bomba lista
+                        bomb_explosion_display_time = time.time() # Registrar tiempo de explosión
+                        hits_since_last_bomb = 0 # Reiniciar el conteo para la próxima bomba
+                        
                 # Manejo de letras pulsadas
                 elif pygame.K_a <= evento.key <= pygame.K_z:
                     typed_letter = pygame.key.name(evento.key).upper() 
@@ -1363,14 +1413,24 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                     if num_jugadores == 1:
                         j1 = jugadores["J1"]
                         if typed_letter == j1["letra_actual"]:
-                            pulsaciones_correctas += 1
+                            j1["pulsaciones_correctas"] += 1 # Siempre incrementa para precisión
+                            j1["score"] += 1 # Puntos base al score total
+                            
+                            hits_since_last_bomb += 1 # Aciertos para la siguiente bomba
+                            # Cargar la bomba si se cumplen los requisitos
+                            if hits_since_last_bomb >= BOMB_ACTIVATION_THRESHOLD_HITS:
+                                bomb_charge += 1
+                                if bomb_charge >= 5 and not bomb_ready_to_detonate: # Si la bomba no estaba ya lista
+                                    bomb_ready_to_detonate = True
+                                    bomb_ready_message_visible = True # Mostrar mensaje de bomba lista
+                                    bomb_ready_message_timer = time.time() # Iniciar temporizador del mensaje
 
                             # Mostrar mensaje llamativo si racha es múltiplo de 10
                             if j1["racha_actual"] % 20 == 0 and j1["racha_actual"] > 0:
                                 racha_mensaje = f"Racha x{j1['racha_actual']}!"
                                 tiempo_racha_mensaje = time.time()
                             if acierto_sound: acierto_sound.play()
-                            j1["score"] += (1 + j1["racha_actual"]) # Usa la racha individual del J1
+                            
                             j1["racha_actual"] += 1 # Incrementa la racha individual
 
                             if j1["racha_actual"] > racha_max["J1"]:
@@ -1391,11 +1451,22 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                             if fallo_sound: fallo_sound.play()
                             j1["racha_actual"] = 0 # Resetea la racha individual
                             j1["fallos"] += 1
+                            # Detonación accidental de la bomba
+                            if bomb_charge > 0: # Solo si hay carga
+                                bonus_points = int(bomb_charge * BOMB_DETONATE_BONUS_MULTIPLIER * 0.5) # Penalización del 50%
+                                j1["score"] += bonus_points
+                                crear_particulas(ANCHO // 2, ALTO // 2, (200, 50, 0), num_particulas=30, min_radius=2, max_radius=6, min_speed=-4, max_speed=4, life=40) # Explosión de otro color, menos partículas
+                                print(f"¡Bomba detonada accidentalmente! Ganaste {bonus_points} puntos (penalizados).")
+                                bomb_charge = 0
+                                bomb_ready_to_detonate = False
+                                bomb_ready_message_visible = False # Ocultar mensaje de bomba lista
+                                bomb_explosion_display_time = time.time() # Registrar tiempo de explosión
+                                hits_since_last_bomb = 0 # Reiniciar el conteo para la próxima bomba
                     else: # num_jugadores == 2
                         # Usa la racha individual del jugador actual
                         player_racha = jugadores[current_turn_player]["racha_actual"]
                         if typed_letter == active_letter:
-                            pulsaciones_correctas += 1
+                            jugadores[current_turn_player]["pulsaciones_correctas"] += 1 # Siempre incrementa para precisión
                             if acierto_sound: acierto_sound.play()
                             jugadores[current_turn_player]["score"] += 1  # Puntos fijos por acierto en Versus
                             jugadores[current_turn_player]["racha_actual"] += 1 # Incrementa la racha individual del jugador actual
@@ -1447,6 +1518,18 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
                 if fallo_sound: fallo_sound.play()
                 j1["racha_actual"] = 0 # Resetea la racha individual
                 j1["fallos"] += 1
+                # Detonación accidental de la bomba si la letra cae
+                if bomb_charge > 0: # Solo si hay carga
+                    bonus_points = int(bomb_charge * BOMB_DETONATE_BONUS_MULTIPLIER * 0.5) # Penalización del 50%
+                    j1["score"] += bonus_points
+                    crear_particulas(ANCHO // 2, ALTO // 2, (200, 50, 0), num_particulas=30, min_radius=2, max_radius=6, min_speed=-4, max_speed=4, life=40) # Explosión de otro color, menos partículas
+                    print(f"¡Bomba detonada accidentalmente! Ganaste {bonus_points} puntos (penalizados).")
+                    bomb_charge = 0
+                    bomb_ready_to_detonate = False
+                    bomb_ready_message_visible = False # Ocultar mensaje de bomba lista
+                    bomb_explosion_display_time = time.time() # Registrar tiempo de explosión
+                    hits_since_last_bomb = 0 # Reiniciar el conteo para la próxima bomba
+
                 j1["letra_actual"] = chr(random.randint(65, 90))
                 margen_seguro = tam
                 j1["x"] = random.randint(margen_seguro, ANCHO - margen_seguro)
@@ -1473,12 +1556,24 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
 
         # Lógica de niveles y velocidad (de la primera versión, ajustada)
         nuevo_nivel = nivel_actual
-        if pulsaciones_correctas >= 80:
-            nuevo_nivel = 3
-        elif pulsaciones_correctas >= 30:
-            nuevo_nivel = 2
+        if num_jugadores == 1:
+            # Para 1 jugador, el nivel se basa en sus pulsaciones_correctas
+            if jugadores["J1"]["pulsaciones_correctas"] >= 80:
+                nuevo_nivel = 3
+            elif jugadores["J1"]["pulsaciones_correctas"] >= 30:
+                nuevo_nivel = 2
+            else:
+                nuevo_nivel = 1
         else:
-            nuevo_nivel = 1
+            # Para 2 jugadores, el nivel se basa en la suma de las pulsaciones_correctas de ambos
+            total_pulsaciones_correctas = jugadores["J1"]["pulsaciones_correctas"] + jugadores["J2"]["pulsaciones_correctas"]
+            if total_pulsaciones_correctas >= 80:
+                nuevo_nivel = 3
+            elif total_pulsaciones_correctas >= 30:
+                nuevo_nivel = 2
+            else:
+                nuevo_nivel = 1
+
 
         if nuevo_nivel != nivel_actual:
             nivel_actual = nuevo_nivel
@@ -1503,28 +1598,25 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             else:
                 nivel_mostrado = False
 
-        # Interfaz de usuario (Score, Fallos)
+        # Interfaz de usuario (Score, Fallos, Pulsaciones correctas para precisión)
+        # J1 UI
         player1_ui_color = color if num_jugadores == 1 else jugadores['J1']['color']
-        
-        # Cambiar color dinámicamente según la racha
         racha_j1 = jugadores['J1']['racha_actual']
         racha_color_j1 = ROJO if racha_j1 >= 20 else AMARILLO if racha_j1 >= 10 else jugadores['J1']['color']
 
-        # Mostrar puntuación y racha de J1 con color de racha
         fuente_ui.render_to(pantalla, (10, 10),
-            f"J1: {jugadores['J1']['score']} (Fallos: {jugadores['J1']['fallos']}) Racha: {racha_j1}",
+            f"J1 Pts: {jugadores['J1']['score']} (Aciertos: {jugadores['J1']['pulsaciones_correctas']}) Fallos: {jugadores['J1']['fallos']} Racha: {racha_j1}",
             racha_color_j1
         )
 
 
         if num_jugadores == 2:
-            # Cambiar color dinámico para J2
+            # J2 UI
             racha_j2 = jugadores['J2']['racha_actual']
             racha_color_j2 = ROJO if racha_j2 >= 20 else AMARILLO if racha_j2 >= 10 else jugadores['J2']['color']
 
-            # Mostrar puntuación y racha de J2 con color de racha
             fuente_ui.render_to(pantalla, (ANCHO // 2 + 10, 10),
-                f"J2: {jugadores['J2']['score']} (Fallos: {jugadores['J2']['fallos']}) Racha: {racha_j2}",
+                f"J2 Pts: {jugadores['J2']['score']} (Aciertos: {jugadores['J2']['pulsaciones_correctas']}) Fallos: {jugadores['J2']['fallos']} Racha: {racha_j2}",
                 racha_color_j2
             )
 
@@ -1542,25 +1634,8 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         if any(j["fallos"] >= fallos_limit for j in jugadores.values()):
             run = False
         
-        # Mostrar Racha (Combo)
-        # Mostrar Racha (Combo) solo en modo 1 jugador
-        if num_jugadores == 1 and jugadores["J1"]["racha_actual"] > 1: # Usa la racha individual del J1
-            combo_text = f"COMBO x{jugadores['J1']['racha_actual']}"
-            combo_color = ROJO if jugadores['J1']['racha_actual'] >= 20 else AMARILLO if jugadores['J1']['racha_actual'] >= 10 else BLANCO
-            
-            fuente_combo = pygame.freetype.SysFont("arial", 40)
-            texto_surf, texto_rect = fuente_combo.render(combo_text, combo_color)
-            
-            offset_x = 0
-            offset_y = 0
-            if jugadores['J1']['racha_actual'] >= 15:
-                offset_x = random.randint(-2, 2)
-                offset_y = random.randint(-2, 2)
+        # Eliminar el bloque de "COMBO"
 
-            pos_x = (ANCHO - texto_rect.width) // 2 + offset_x
-            pos_y = 20 + offset_y
-            pantalla.blit(texto_surf, (pos_x, pos_y))
-            
         # Actualizar estado del power-up
         terminado = power_up.actualizar()
         if terminado == "ralentizar":
@@ -1572,22 +1647,65 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
             tiempo_restante = max(0, int(power_up.duracion - (time.time() - power_up.tiempo_activado)))
             fuente_power.render_to(pantalla, (ANCHO - 250, ALTO - 40), f"Power-Up: {power_up.activo} ({tiempo_restante}s)", BLANCO)
 
+        # UI de la bomba (solo para 1 jugador)
+        if num_jugadores == 1:
+            if hits_since_last_bomb >= BOMB_ACTIVATION_THRESHOLD_HITS:
+                fuente_bomba.render_to(pantalla, (10, 80), f"Bomba Carga: {bomb_charge}", BLANCO)
+                if bomb_ready_to_detonate and bomb_ready_message_visible:
+                    # Parpadeo del mensaje "¡BOMBA LISTA!"
+                    if (time.time() - bomb_ready_message_timer) % 1 < 0.5: # Visible 0.5s, invisible 0.5s
+                        texto_bomba_surf, texto_bomba_rect = fuente_bomba.render("¡BOMBA LISTA! (ESPACIO)", AMARILLO)
+                        texto_bomba_rect.center = (ANCHO // 2, ALTO // 2 + 150)
+                        pantalla.blit(texto_bomba_surf, texto_bomba_rect)
+                    if (time.time() - bomb_ready_message_timer) > BOMB_READY_MESSAGE_DURATION:
+                        bomb_ready_message_visible = False # Ocultar mensaje después de un tiempo
+            else:
+                # Mostrar progreso para la bomba
+                fuente_bomba.render_to(pantalla, (10, 80), f"Próxima Bomba: {hits_since_last_bomb} / {BOMB_ACTIVATION_THRESHOLD_HITS}", BLANCO)
+
+            
+            # Mostrar animación de explosión
+            if time.time() - bomb_explosion_display_time < 0.5 and bomb_explosion_display_time != 0: # Mostrar por 0.5 segundos
+                # Efecto de escala
+                scale_factor = 1 + (time.time() - bomb_explosion_display_time) * 2 # Escala de 1 a 2 en 0.5s
+                explosion_text_size = int(80 * scale_factor)
+                fuente_explosion = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, explosion_text_size)
+                
+                # Efecto de desvanecimiento
+                alpha = max(0, 255 - int((time.time() - bomb_explosion_display_time) / 0.5 * 255))
+                
+                explosion_text_surf, explosion_text_rect = fuente_explosion.render("¡BOOM!", ROJO)
+                explosion_text_surf.set_alpha(alpha)
+                explosion_text_rect.center = (ANCHO // 2, ALTO // 2)
+                pantalla.blit(explosion_text_surf, explosion_text_rect)
+                
+                # Crear partículas continuamente durante la explosión
+                crear_particulas(ANCHO // 2, ALTO // 2, ROJO, num_particulas=5, min_radius=2, max_radius=6, min_speed=-8, max_speed=8, life=20)
+
 
         btn_pausa.draw(pantalla)
         # Mostrar mensaje llamativo de racha en el centro
         if racha_mensaje and (time.time() - tiempo_racha_mensaje < duracion_racha_mensaje):
             fuente_racha = pygame.freetype.SysFont("arial", 50)
-            texto_surf, texto_rect = fuente_racha.render(racha_mensaje, ROJO)
+            
+            # Animación de la racha: tamaño y desplazamiento vertical
+            anim_scale = 1 + 0.1 * math.sin(time.time() * 8) # Pulsa el tamaño
+            anim_offset_y = -10 * abs(math.sin(time.time() * 4)) # Sube y baja un poco
+            
+            # Renderizar el texto de la racha con el tamaño animado
+            texto_surf, texto_rect = fuente_racha.render(racha_mensaje, ROJO, size=int(50 * anim_scale))
 
-            # Mover el texto un poco a la derecha para hacer espacio al icono
-            texto_rect.center = (ANCHO // 2 + 30, ALTO // 2 - 100)
+            # Posicionar el texto en el centro, con el desplazamiento animado
+            texto_rect.center = (ANCHO // 2, ALTO // 2 - 100 + anim_offset_y)
 
-            # Posicionar el icono de fuego a la izquierda del texto
-            icono_rect = img_fuego.get_rect()
-            icono_rect.right = texto_rect.left - 10   # 10 px de espacio entre icono y texto
-            icono_rect.centery = texto_rect.centery   # Alineado verticalmente
+            # Posicionar el icono de fuego a la izquierda del texto, también animado
+            # Escalamos el icono de fuego de forma independiente para que no se distorsione con el texto
+            scaled_img_fuego = pygame.transform.scale(img_fuego, (int(40 * anim_scale), int(60 * anim_scale)))
+            icono_rect = scaled_img_fuego.get_rect()
+            icono_rect.right = texto_rect.left - 10   # Espacio entre icono y texto
+            icono_rect.centery = texto_rect.centery   # Alineado verticalmente con el texto
 
-            pantalla.blit(img_fuego, icono_rect)      # Mostrar icono
+            pantalla.blit(scaled_img_fuego, icono_rect)      # Mostrar icono
             pantalla.blit(texto_surf, texto_rect)     # Mostrar texto
 
         else:
@@ -1596,18 +1714,24 @@ def jugar(nombre_fuente, tam, color, num_jugadores=2, initial_speed=1.5, count_w
         pygame.display.flip()
 
     # Fin del juego
-    total_aciertos = sum(j["score"] for j in jugadores.values())
+    # Calcular totales para la pantalla de fin de juego
+    total_score = sum(j["score"] for j in jugadores.values())
     total_fallos = sum(j["fallos"] for j in jugadores.values())
+    total_pulsaciones_correctas_precision = sum(j["pulsaciones_correctas"] for j in jugadores.values())
 
     if num_jugadores == 1:
         return pantalla_fin_juego(
-            jugadores['J1']['score'], total_aciertos, total_fallos,
+            total_score, # Este es el score total que incluye bonus
+            total_pulsaciones_correctas_precision, # Este es para la precisión
+            total_fallos,
             num_jugadores=1,
             racha_max=racha_max["J1"]
         )
     else:
         return pantalla_fin_juego(
-            0, total_aciertos, total_fallos,
+            0, # No hay un score total consolidado para el highscore en Versus
+            total_pulsaciones_correctas_precision, # Este es para la precisión
+            total_fallos,
             num_jugadores=2,
             scores_j1=jugadores['J1']['score'],
             scores_j2=jugadores['J2']['score'],

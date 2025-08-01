@@ -1,5 +1,4 @@
 # powerups.py
-
 import time
 
 class PowerUp:
